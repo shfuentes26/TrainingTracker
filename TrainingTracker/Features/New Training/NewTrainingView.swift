@@ -6,15 +6,64 @@
 //
 
 import SwiftUICore
+import SwiftUI
+
+enum NewTrainingTab: String, CaseIterable, Identifiable {
+    case gym = "Gym"
+    case running = "Running"
+    var id: Self { self }
+}
 
 struct NewTrainingView: View {
+    @State private var tab: NewTrainingTab = .gym
+
     var body: some View {
         VStack(spacing: 12) {
-            Text("New Training")
-                .font(.title2)
-            Text("Contenido de la pestaña New Training")
-                .foregroundStyle(.secondary)
+            // Cabecera con selector de pestañas internas
+            Picker("Tipo", selection: $tab) {
+                ForEach(NewTrainingTab.allCases) { t in
+                    Text(t.rawValue).tag(t)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .padding(.top, 8)
+
+            // Contenido de cada pestaña
+            Group {
+                switch tab {
+                case .gym:
+                    GymTrainingForm()
+                case .running:
+                    RunningTrainingForm()
+                }
+            }
+            .transition(.opacity)
+            .animation(.default, value: tab)
         }
-        .padding()
+        .navigationTitle("New Training")
+    }
+}
+
+
+private struct GymTrainingForm: View {
+    var body: some View {
+        Form {
+            Section("Gym") {
+                //TODO: formulario de gym (Fecha, Ejercicio, Repeticiones, peso)
+            }
+        }
+    }
+    
+}
+
+private struct RunningTrainingForm: View {
+    var body: some View {
+        Form {
+            Section("Running") {
+                //TODO: formulario de running (Fecha, distancia, tiempo)
+            }
+        }
+        
     }
 }
