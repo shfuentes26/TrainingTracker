@@ -14,7 +14,12 @@ struct ContentView: View {
 
     var body: some View {
         NavigationSplitView {
+            
             List {
+                Text("PEC1!")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding()
                 ForEach(items) { item in
                     NavigationLink {
                         Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
@@ -35,8 +40,13 @@ struct ContentView: View {
                 }
             }
         } detail: {
-            Text("Select an item")
+            Text("Detail")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .padding()
         }
+        //tab view navigation
+        MainTabView()
     }
 
     private func addItem() {
