@@ -43,29 +43,14 @@ struct RunningTrainingForm: View {
                 
             }
             Section("Notes") {
-                ZStack(alignment: .topLeading) {
-                    if notes.isEmpty {
-                        Text("Optional notes...")
-                            .foregroundColor(.gray)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 10)
-                    }
-                    TextEditor(text: $notes)
-                        .frame(height: 100)
-                        .padding(4)
-                        .background(Color(.systemBackground))
-                        .cornerRadius(10)
-                }
-                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                TextField("Optional notes…", text: $notes, axis: .vertical)
+                    .lineLimit(3, reservesSpace: true)
             }
             Section {
-                Button(action: saveTraining) {
-                    HStack {
-                        Spacer()
-                        Label("Save", systemImage: "checkmark.circle.fill")
-                            .font(.headline)
-                        Spacer()
-                    }
+                Button(action: saveRunningTraining) {
+                    Text("Save")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, minHeight: 40, alignment: .center)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.blue)
@@ -74,15 +59,16 @@ struct RunningTrainingForm: View {
         }
         
     }
-    
-    private func saveTraining() {
+    /* funcion para guardar el entranamiento */
+    private func saveRunningTraining() {
             print("Running training saved:")
             print("- Date: \(date)")
             print("- Distance: \(distance) km")
             print("- Duration: \(duration)")
             print("- Notes: \(notes)")
     }
-        
+    
+    /* funcion para crear mascara del formato h:mm:ss */
     private func formatDurationInput(_ input: String) -> String {
         let digits = input.filter { $0.isNumber }
 

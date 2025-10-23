@@ -75,18 +75,16 @@ struct GymTrainingForm: View {
                     .lineLimit(3, reservesSpace: true)
             }
             Section {
-                Button(action: save) {
-                    HStack {
-                        Spacer()
-                        Label("Save", systemImage: "checkmark.circle.fill")
-                            .font(.headline)
-                        Spacer()
-                    }
+                Button(action: saveGymTraining) {
+                    Text("Save")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, minHeight: 40, alignment: .center)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.blue)
                 .listRowBackground(Color.clear)
-            }            
+            }
+            
         }
         .onAppear { ensureSelection() }
         .onChange(of: category) { _, _ in ensureSelection() }
@@ -109,7 +107,7 @@ struct GymTrainingForm: View {
     private var canSave: Bool {
         selectedExerciseID != nil && reps > 0 && weightKg > 0
     }
-    private func save() {
+    private func saveGymTraining() {
         print("Entramos en save...")
         //validamos que un ejercicio ha sido seleccionado
         guard let id = selectedExerciseID else {
