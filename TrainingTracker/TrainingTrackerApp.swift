@@ -12,7 +12,9 @@ import SwiftData
 struct TrainingTrackerApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            Exercise.self,
+            GymTraining.self,
+            ExerciseSet.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -27,6 +29,8 @@ struct TrainingTrackerApp: App {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(for: [Item.self])
+        .modelContainer(for: [Exercise.self,
+                              GymTraining.self,
+                              ExerciseSet.self])
     }
 }

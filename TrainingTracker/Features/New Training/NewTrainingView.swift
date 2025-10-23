@@ -5,8 +5,8 @@
 //  Created by Satur Hernandez Fuentes on 10/14/25.
 //
 
-import SwiftUICore
 import SwiftUI
+import SwiftData
 
 enum NewTrainingTab: String, CaseIterable, Identifiable {
     case gym = "Gym"
@@ -46,24 +46,4 @@ struct NewTrainingView: View {
 }
 
 
-private struct GymTrainingForm: View {
-    var body: some View {
-        Form {
-            Section("Gym") {
-                //TODO: formulario de gym (Fecha, Ejercicio, Repeticiones, peso)
-            }
-        }
-    }
-    
-}
 
-private struct RunningTrainingForm: View {
-    var body: some View {
-        Form {
-            Section("Running") {
-                //TODO: formulario de running (Fecha, distancia, tiempo)
-            }
-        }
-        
-    }
-}

@@ -12,8 +12,10 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
 
     var body: some View {
-        //tab view navigation
+        //Tab de navegación principal
         MainTabView()
+        //precargamos ejercicios de gym básicos
+        .task { ExercisesPreLoader.initialLoad(modelContext) }
     }
 }
 
