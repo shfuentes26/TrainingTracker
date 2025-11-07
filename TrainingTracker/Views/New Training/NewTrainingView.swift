@@ -30,16 +30,11 @@ struct NewTrainingView: View {
             .padding(.top, 8)
 
             // Contenido de cada pestaña
-            Group {
-                switch tab {
-                case .gym:
+            if tab == .gym {
                     GymTrainingForm()
-                case .running:
+                } else {
                     RunningTrainingForm()
-                }
             }
-            .transition(.opacity)
-            .animation(.default, value: tab)
         }
         .navigationTitle("New Training")
     }
