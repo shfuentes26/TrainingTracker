@@ -14,8 +14,7 @@ struct TrainingTrackerApp: App {
         let schema = Schema([
             Exercise.self,
             GymTraining.self,
-            RunningTraining.self,
-            ExerciseSet.self,
+            RunningTraining.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -32,7 +31,6 @@ struct TrainingTrackerApp: App {
         }
         .modelContainer(for: [Exercise.self,
                               GymTraining.self,
-                              RunningTraining.self,
-                              ExerciseSet.self])
+                              RunningTraining.self])
     }
 }

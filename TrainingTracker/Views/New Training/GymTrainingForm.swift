@@ -25,8 +25,7 @@ struct GymTrainingForm: View {
     private var allExercises: [Exercise]
     
     private var filteredExercises: [Exercise] {
-        let cat = vm.category
-        return allExercises.filter { $0.category == cat }
+        allExercises.filter { $0.group == vm.category }
     }
     
     var body: some View {
@@ -34,16 +33,19 @@ struct GymTrainingForm: View {
             Section("Gym Details") {
                 DatePicker("Date", selection: $vm.date, displayedComponents: .date)
                 Picker("Category", selection: $vm.category) {
-                    ForEach(ExerciseCategory.allCases, id: \.self) { c in
-                        Text(c.rawValue).tag(c)
+                    ForEach(GymGroup.allCases, id: \.self) { g in
+                        Text(g.rawValue).tag(g)
                     }
                 }
                 .pickerStyle(.segmented)
+                
                 if filteredExercises.isEmpty {
                     Text("No exercises for \(vm.category.rawValue).")
                         .foregroundStyle(.secondary)
                 } else {
-                    let items: [(UUID, String)] = filteredExercises.map { ($0.id, $0.name) }
+                    // Para que el Picker funcione con UUID? usamos pares (id, name)
+                    let items: [(UUID, String, Bool)] =
+                        filteredExercises.map { ($0.id, $0.name, $0.usesVariableWeight) }
 
                     Picker("Exercise", selection: $vm.selectedExerciseID) {
                         Text("Select an exercise").tag(nil as UUID?)
@@ -52,6 +54,7 @@ struct GymTrainingForm: View {
                         }
                     }
                 }
+                
                 HStack {
                     Text("Reps")
                     Spacer()

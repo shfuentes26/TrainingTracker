@@ -13,7 +13,7 @@ enum ExercisesPreLoader {
         guard !hasAny else { return }
 
         // Lista de ejercicios precargados
-        let rows: [(String, ExerciseCategory)] = [
+        let rows: [(String, GymGroup)] = [
             // Core
             ("Abs", .core), ("Plank", .core),
             // Chest/Back
@@ -25,7 +25,7 @@ enum ExercisesPreLoader {
         ]
 
         for (name, cat) in rows {
-            ctx.insert(Exercise(name: name, category: cat))
+            ctx.insert(Exercise(name: name, group: cat))
         }
         try? ctx.save()
     }

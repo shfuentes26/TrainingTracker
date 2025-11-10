@@ -12,7 +12,7 @@ import SwiftData
 final class GymTrainingViewModel: ObservableObject {
 
     @Published var date = Date()
-    @Published var category: ExerciseCategory = .core
+    @Published var category: GymGroup = .core
     @Published var selectedExerciseID: UUID?
     @Published var repsText: String = ""
     @Published var weightText: String = ""
@@ -49,14 +49,15 @@ final class GymTrainingViewModel: ObservableObject {
         // peso (opcional)
         let weight = parseDouble(weightText)
 
-        let session = GymTraining(date: date, notes: notes.isEmpty ? nil : notes)
-        let set = ExerciseSet(exercise: exercise,
-                              reps: reps,
-                              weightKg: weight ?? 0,
-                              session: session)
-        session.sets.append(set)
+        let training = GymTraining(
+                    exercise: exercise,
+                    date: date,
+                    reps: reps,
+                    weightKg: weight,
+                    notes: notes.isEmpty ? nil : notes
+                )
 
-        context.insert(session)
+        context.insert(training)
         do {
             try context.save()
             return true
