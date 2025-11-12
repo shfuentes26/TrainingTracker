@@ -10,6 +10,8 @@ import SwiftData
 struct GymDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("usePounds") private var usePounds = false
+    @State private var showEdit = false
     @StateObject private var vm: GymDetailViewModel
 
     init(id: PersistentIdentifier) {
@@ -33,11 +35,11 @@ struct GymDetailView: View {
                             Text("\(s.reps) reps")
                                 .foregroundStyle(.secondary)
                         }
-                        if let w = s.weightKg {
+                        if vm.formattedWeight(usePounds: usePounds) != nil {
                             HStack {
                                 Text("Weight:")
                                 Spacer()
-                                Text(String(format: "%.1f kg", w))
+                                Text(vm.formattedWeight(usePounds: usePounds)!)
                                     .foregroundStyle(.secondary)
                             }
                         }
@@ -61,13 +63,20 @@ struct GymDetailView: View {
                 ProgressView()
             }
         }
-        .navigationTitle("Gym training")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("Details")
+        .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
-                //Button("Edit")  { showEdit = true }
+                Button("Edit")  { showEdit = true }
                 Button("Delete", role: .destructive) {
                     if vm.delete(context: modelContext) { dismiss() }
+                }
+            }
+        }
+        .sheet(isPresented: $showEdit) {
+            if let id = vm.session?.persistentModelID {
+                GymEditView(id: id) { _ in
+                    vm.load(context: modelContext)
                 }
             }
         }

@@ -10,6 +10,22 @@ import SwiftData
 
 @main
 struct TrainingTrackerApp: App {
+    
+    init() {
+            let appearance = UINavigationBarAppearance()
+            appearance.configureWithOpaqueBackground()
+            appearance.backgroundColor = UIColor(named: "MainColor")
+            appearance.titleTextAttributes = [.foregroundColor: UIColor.black]
+            appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.black]
+
+            UINavigationBar.appearance().standardAppearance = appearance
+            UINavigationBar.appearance().scrollEdgeAppearance = appearance
+            UINavigationBar.appearance().compactAppearance = appearance
+
+            UINavigationBar.appearance().tintColor = .black
+        }
+    
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Exercise.self,

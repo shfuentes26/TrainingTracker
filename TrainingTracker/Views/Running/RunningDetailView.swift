@@ -10,6 +10,8 @@ import SwiftData
 struct RunningDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @State private var showEdit = false
+    @AppStorage("useMiles") private var useMiles = false
     @StateObject private var vm: RunningDetailViewModel
 
     init(id: PersistentIdentifier) {
@@ -24,8 +26,8 @@ struct RunningDetailView: View {
                         HStack {
                             Text("Distance:")
                             Spacer()
-                            Text(String(format: "%.1f km", r.distanceKm))
-                                .foregroundStyle(.secondary)
+                            Text(vm.formattedDistance(useMiles: useMiles))
+                                .foregroundStyle(.secondary) 
                         }
                         HStack {
                             Text("Duration:")
@@ -36,7 +38,8 @@ struct RunningDetailView: View {
                         HStack {
                             Text("Pace:")
                             Spacer()
-                            Text(r.paceString).foregroundStyle(.secondary)
+                            Text(vm.formattedPace(useMiles: useMiles))
+                                .foregroundStyle(.secondary)
                         }
                         HStack {
                             Text("Date:")
@@ -56,13 +59,20 @@ struct RunningDetailView: View {
                 ProgressView()
             }
         }
-        .navigationTitle("Run training")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle("Details")              
+        .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
-                //Button("Edit")  { showEdit = true }
+                Button("Edit")  { showEdit = true }
                 Button("Delete", role: .destructive) {
                     if vm.delete(context: modelContext) { dismiss() }
+                }
+            }
+        }
+        .sheet(isPresented: $showEdit) {
+            if let id = vm.run?.persistentModelID {
+                RunningEditView(id: id) { _ in
+                    vm.load(context: modelContext)  
                 }
             }
         }

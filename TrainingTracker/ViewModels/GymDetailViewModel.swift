@@ -25,5 +25,16 @@ final class GymDetailViewModel: ObservableObject {
         do { try context.save(); return true }
         catch { return false }
     }
+    
+    // Peso formateado según preferencia. Devuelve nil si no hay peso.
+    func formattedWeight(usePounds: Bool) -> String? {
+        guard let w = session?.weightKg else { return nil }
+        if usePounds {
+            let lb = w * 2.20462
+            return String(format: "%.1f lb", lb)
+        } else {
+            return String(format: "%.1f kg", w)
+        }
+    }
 }
 

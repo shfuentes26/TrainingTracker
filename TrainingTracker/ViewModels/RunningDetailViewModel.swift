@@ -39,13 +39,28 @@ final class RunningDetailViewModel: ObservableObject {
         }
     }
     
-    func formattedPace(for distanceUnit: String) -> String {
-            guard let r = run else { return "—" }
-            if distanceUnit == "mi" {
-                return r.paceString.replacingOccurrences(of: "/km", with: " min/mi")
-            } else {
-                return r.paceString.replacingOccurrences(of: "/km", with: " min/km")
-            }
+    func formattedPace(useMiles: Bool) -> String {
+        guard let r = run else { return "—" }
+        let base = r.paceString
+            .replacingOccurrences(of: " /km", with: "/km")
+            .replacingOccurrences(of: " /mi", with: "/mi")
+        if useMiles {
+            if base.contains("/mi") { return base.replacingOccurrences(of: "/mi", with: " min/mi") }
+            return base.replacingOccurrences(of: "/km", with: " min/mi")
+        } else {
+            if base.contains("/km") { return base.replacingOccurrences(of: "/km", with: " min/km") }
+            return base.replacingOccurrences(of: "/mi", with: " min/km")
         }
+    }
+    
+    func formattedDistance(useMiles: Bool) -> String {
+        guard let r = run else { return "—" }
+        if useMiles {
+            let mi = r.distanceKm * 0.621371
+            return String(format: "%.2f mi", mi)
+        } else {
+            return String(format: "%.2f km", r.distanceKm)
+        }
+    }
 }
 

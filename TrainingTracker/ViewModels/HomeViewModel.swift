@@ -22,6 +22,10 @@ final class HomeViewModel: ObservableObject {
     @Published var items: [HomeItem] = []
 
     func load(context: ModelContext) {
+        //Preferencias de unidades de medidas
+        let useMiles   = UserDefaults.standard.bool(forKey: "useMiles")
+        let usePounds  = UserDefaults.standard.bool(forKey: "usePounds")
+        
         // Entrenamientos Running
         let runDesc = FetchDescriptor<RunningTraining>(sortBy: [SortDescriptor(\.date, order: .reverse)])
         let runs = (try? context.fetch(runDesc)) ?? []
@@ -30,7 +34,7 @@ final class HomeViewModel: ObservableObject {
         let gymDesc = FetchDescriptor<GymTraining>(sortBy: [SortDescriptor(\.date, order: .reverse)])
         let gyms = (try? context.fetch(gymDesc)) ?? []
 
-        // Map to unified items
+        // variable para guardar elementos de ambos tipos
         var merged: [HomeItem] = []
 
         for r in runs {
@@ -38,7 +42,7 @@ final class HomeViewModel: ObservableObject {
                 id: r.persistentModelID,
                 date: r.date,
                 title: "Run training",
-                subtitle: "\(distanceString(r.distanceKm)) • \(r.paceString)",
+                subtitle: "\(distanceString(r.distanceKm, useMiles: useMiles)) • \(paceString(r.paceString, useMiles: useMiles))",
                 icon: "figure.run",
                 kind: .running
             ))
@@ -47,7 +51,7 @@ final class HomeViewModel: ObservableObject {
         for g in gyms {
             let details: String = {
                 if let w = g.weightKg {
-                    return "\(g.exercise.name) • \(g.reps) reps @ \(weightString(w))"
+                    return "\(g.exercise.name) • \(g.reps) reps @ \(weightString(w, usePounds: usePounds))"
                 } else {
                     return "\(g.exercise.name) • \(g.reps) reps"
                 }
@@ -76,11 +80,34 @@ final class HomeViewModel: ObservableObject {
         }
     }
     
-    private func distanceString(_ d: Double) -> String {
-        String(format: "%.1f km", d)
+    private func distanceString(_ km: Double, useMiles: Bool) -> String {
+        if useMiles {
+            let mi = km * 0.621371
+            return String(format: "%.1f mi", mi)
+        } else {
+            return String(format: "%.1f km", km)
+        }
     }
-    private func weightString(_ w: Double) -> String {
-        String(format: "%.1f kg", w)
+    
+    private func paceString(_ base: String, useMiles: Bool) -> String {
+        var s = base.trimmingCharacters(in: .whitespaces)
+        s = s.replacingOccurrences(of: " /", with: "/")
+        if useMiles {
+            return s.replacingOccurrences(of: "/km", with: " min/mi")
+                    .replacingOccurrences(of: "/mi", with: " min/mi")
+        } else {
+            return s.replacingOccurrences(of: "/mi", with: " min/km")
+                    .replacingOccurrences(of: "/km", with: " min/km")
+        }
+    }
+    
+    private func weightString(_ kg: Double, usePounds: Bool) -> String {
+        if usePounds {
+            let lb = kg * 2.20462
+            return String(format: "%.1f lb", lb)
+        } else {
+            return String(format: "%.1f kg", kg)
+        }
     }
 }
 
