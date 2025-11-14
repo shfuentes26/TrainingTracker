@@ -7,6 +7,7 @@
 import SwiftUI
 import SwiftData
 
+/// ViewModel encargado de editar un entrenamiento existente de gimnasio.
 @MainActor
 final class GymEditViewModel: ObservableObject {
     @Published var training: GymTraining?
@@ -22,6 +23,7 @@ final class GymEditViewModel: ObservableObject {
     
     init(id: PersistentIdentifier) { self.id = id }
 
+    /// Carga el entrenamiento original desde SwiftData y rellena el formulario.
     func load(context: ModelContext, usePounds: Bool) {
         self.usePounds = usePounds
         guard let g = try? context.model(for: id) as? GymTraining else { return }
@@ -38,11 +40,13 @@ final class GymEditViewModel: ObservableObject {
         notes = g.notes ?? ""
     }
 
+    /// Valida si el entrenamiento puede guardarse.
     var canSave: Bool {
         guard let reps = Int(repsText), reps > 0 else { return false }
         return selectedExerciseID != nil
     }
 
+    /// Guarda los cambios realizados en el entrenamiento.
     @discardableResult
     func save(context: ModelContext, exerciseByID: (UUID) -> Exercise?) -> GymTraining? {
         guard let training,
@@ -60,6 +64,7 @@ final class GymEditViewModel: ObservableObject {
         do { try context.save(); return training } catch { return nil }
     }
     
+    /// Convierte un valor en kg a la unidad elegida en Settings
     private func formatDisplay(fromKg kg: Double) -> String {
         if usePounds {
             let lb = kg * 2.20462
@@ -69,6 +74,7 @@ final class GymEditViewModel: ObservableObject {
         }
     }
 
+    /// Convierte texto del formulario a Double y convierte a kg si el usuario usa libras para guardarlo en SwiftData
     private func parseDouble(_ text: String) -> Double? {
         let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard t.isEmpty == false else { return nil }

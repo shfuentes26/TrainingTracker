@@ -7,6 +7,7 @@
 import SwiftUI
 import SwiftData
 
+/// ViewModel para mostrar los detalles de un entrenamiento de running.
 @MainActor
 final class RunningDetailViewModel: ObservableObject {
     @Published var run: RunningTraining?
@@ -14,10 +15,12 @@ final class RunningDetailViewModel: ObservableObject {
     private let id: PersistentIdentifier
     init(id: PersistentIdentifier) { self.id = id }
 
+    /// Carga el entrenamiento desde SwiftData usando el identificador.
     func load(context: ModelContext) {
         run = try? context.model(for: id) as? RunningTraining
     }
     
+    /// Elimina el entrenamiento cargado.
     @discardableResult
     func delete(context: ModelContext) -> Bool {
         guard let run else { return false }
@@ -26,6 +29,7 @@ final class RunningDetailViewModel: ObservableObject {
         catch { return false }
     }
     
+    /// Devuelve la duración del entrenamiento listo para mostrar en la vista
     var formattedDuration: String {
         guard let r = run else { return "—" }
         let seconds = r.durationSec
@@ -39,20 +43,29 @@ final class RunningDetailViewModel: ObservableObject {
         }
     }
     
+    /// Formatea el ritmo según la unidad elegida en Settings
     func formattedPace(useMiles: Bool) -> String {
         guard let r = run else { return "—" }
-        let base = r.paceString
-            .replacingOccurrences(of: " /km", with: "/km")
-            .replacingOccurrences(of: " /mi", with: "/mi")
+
+        let paceSecPerKm: Double = {
+            guard r.distanceKm > 0 else { return .infinity }
+            return Double(r.durationSec) / r.distanceKm
+        }()
+        guard paceSecPerKm.isFinite else { return "–" }
+
         if useMiles {
-            if base.contains("/mi") { return base.replacingOccurrences(of: "/mi", with: " min/mi") }
-            return base.replacingOccurrences(of: "/km", with: " min/mi")
+            let secPerMile = paceSecPerKm / 0.621371
+            let m = Int(secPerMile) / 60
+            let s = Int(secPerMile) % 60
+            return String(format: "%d:%02d min/mi", m, s)
         } else {
-            if base.contains("/km") { return base.replacingOccurrences(of: "/km", with: " min/km") }
-            return base.replacingOccurrences(of: "/mi", with: " min/km")
+            let m = Int(paceSecPerKm) / 60
+            let s = Int(paceSecPerKm) % 60
+            return String(format: "%d:%02d min/km", m, s)
         }
     }
     
+    /// Formatea la distancia según la unidad elegida en Settings
     func formattedDistance(useMiles: Bool) -> String {
         guard let r = run else { return "—" }
         if useMiles {

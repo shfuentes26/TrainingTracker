@@ -8,6 +8,7 @@ import Foundation
 import SwiftUI
 import SwiftData
 
+/// ViewModel responsable de gestionar el formulario de creacion de un entrenamiento de running
 @MainActor
 final class RunningTrainingViewModel: ObservableObject {
 
@@ -19,18 +20,19 @@ final class RunningTrainingViewModel: ObservableObject {
 
     @Published var alert: (title: String, message: String)?
 
+    /// Indica si el formulario tiene datos suficientes para guardar el entrenamiento
     var canSave: Bool {
         (parseKm(distanceText) ?? 0) > 0 && (parseHMS(durationText) ?? 0) > 0
     }
 
-
+    /// Guarda un nuevo entrenamiento de running en SwiftData.
     func save(using context: ModelContext) {
         guard let km = parseKm(distanceText), km > 0 else {
             alert = ("Distance required", "The distance can't be 0")
             return
         }
         guard let secs = parseHMS(durationText), secs > 0 else {
-            alert = ("Duration required", "Format required h:mm:ss (ej. 0:45:30).")
+            alert = ("Duration required", "Time is incorrect")
             return
         }
         let obj = RunningTraining(date: date,
@@ -46,7 +48,7 @@ final class RunningTrainingViewModel: ObservableObject {
             alert = ("Error", "Training couldn't be saved: \(error.localizedDescription)")
         }
     }
-
+    /// Limpia todos los campos del formulario
     func reset() {
         date = .now
         distanceText = ""
@@ -54,25 +56,26 @@ final class RunningTrainingViewModel: ObservableObject {
         notes = ""
     }
 
-    // MARK: - Helpers de formato/parseo
-
+    /// Aplica una máscara automática al campo de duración para convertir a h:mm:ss
     func applyDurationMask(_ raw: String) -> String {
         let digits = raw.filter { $0.isNumber }
         var out = ""
         let c = Array(digits)
-        if c.count > 0 { out.append(c[0]) }                  // h
-        if c.count > 1 { out.append(":"); out.append(c[1]) } // m
-        if c.count > 2 { out.append(c[2]) }                  // m
-        if c.count > 3 { out.append(":"); out.append(c[3]) } // s
-        if c.count > 4 { out.append(c[4]) }                  // s
-        if c.count > 5 { out.append(c[5]) }                  // s
+        if c.count > 0 { out.append(c[0]) }
+        if c.count > 1 { out.append(":"); out.append(c[1]) }
+        if c.count > 2 { out.append(c[2]) }
+        if c.count > 3 { out.append(":"); out.append(c[3]) }
+        if c.count > 4 { out.append(c[4]) }
+        if c.count > 5 { out.append(c[5]) }
         return String(out.prefix(8))
     }
 
+    /// Convierte el texto de distancia a Double, aceptando coma o punto.
     private func parseKm(_ text: String) -> Double? {
         Double(text.replacingOccurrences(of: ",", with: "."))
     }
 
+    /// Convierte el texto del tiempo en número total de segundos.
     private func parseHMS(_ text: String) -> Int? {
         let parts = text.split(separator: ":").map { Int($0) ?? 0 }
         guard (1...3).contains(parts.count) else { return nil }

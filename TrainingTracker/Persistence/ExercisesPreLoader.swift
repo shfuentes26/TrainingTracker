@@ -6,6 +6,7 @@
 //
 import SwiftData
 
+/// Enum encargado de precargar ejercicios iniciales en la base de datos
 enum ExercisesPreLoader {
     static func initialLoad(_ ctx: ModelContext) {
         // Carga inicial de ejercicios cuando no hay nada en DB

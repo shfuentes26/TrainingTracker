@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 import SwiftData
-
+/// Formulario para crear un entrenamiento de gimnasio
 struct GymTrainingForm: View {
     
     //contexto de la DB
@@ -38,12 +38,12 @@ struct GymTrainingForm: View {
                     }
                 }
                 .pickerStyle(.segmented)
-                
+                // Lista dinámica de ejercicios según la categoría
                 if filteredExercises.isEmpty {
                     Text("No exercises for \(vm.category.rawValue).")
                         .foregroundStyle(.secondary)
                 } else {
-                    // Para que el Picker funcione con UUID? usamos pares (id, name)
+                    // Para que el Picker funcione con UUID
                     let items: [(UUID, String, Bool)] =
                         filteredExercises.map { ($0.id, $0.name, $0.usesVariableWeight) }
 

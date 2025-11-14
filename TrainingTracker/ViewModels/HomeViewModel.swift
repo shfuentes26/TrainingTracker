@@ -7,16 +7,7 @@
 import SwiftUI
 import SwiftData
 
-struct HomeItem: Identifiable, Equatable {
-    let id: PersistentIdentifier
-    let date: Date
-    let title: String
-    let subtitle: String
-    let icon: String
-    enum Kind { case running, gym }
-    let kind: Kind
-}
-
+/// ViewModel de la pantalla Home.
 @MainActor
 final class HomeViewModel: ObservableObject {
     @Published var items: [HomeItem] = []
@@ -38,11 +29,13 @@ final class HomeViewModel: ObservableObject {
         var merged: [HomeItem] = []
 
         for r in runs {
+            let distance = distanceString(r.distanceKm, useMiles: useMiles)
+            let pace     = paceString(from: r, useMiles: useMiles)
             merged.append(.init(
                 id: r.persistentModelID,
                 date: r.date,
                 title: "Run training",
-                subtitle: "\(distanceString(r.distanceKm, useMiles: useMiles)) • \(paceString(r.paceString, useMiles: useMiles))",
+                subtitle: "\(distance) • \(pace)",
                 icon: "figure.run",
                 kind: .running
             ))
@@ -72,6 +65,7 @@ final class HomeViewModel: ObservableObject {
         self.items = merged
     }
 
+    /// Elimina un elemento de la pantalla Home
     func delete(_ item: HomeItem, in context: ModelContext) {
         if let model = try? context.model(for: item.id) {
             context.delete(model)
@@ -80,6 +74,7 @@ final class HomeViewModel: ObservableObject {
         }
     }
     
+    /// Convierte kilómetros o millas según preferencia del usuario.
     private func distanceString(_ km: Double, useMiles: Bool) -> String {
         if useMiles {
             let mi = km * 0.621371
@@ -89,18 +84,28 @@ final class HomeViewModel: ObservableObject {
         }
     }
     
-    private func paceString(_ base: String, useMiles: Bool) -> String {
-        var s = base.trimmingCharacters(in: .whitespaces)
-        s = s.replacingOccurrences(of: " /", with: "/")
+    /// Normaliza el string de pace del modelo (5:00 /km o 5:00 /mi)
+    private func paceString(from run: RunningTraining, useMiles: Bool) -> String {
+        let paceSecPerKm: Double = {
+            guard run.distanceKm > 0 else { return .infinity }
+            return Double(run.durationSec) / run.distanceKm
+        }()
+        guard paceSecPerKm.isFinite else { return "–" }
+
         if useMiles {
-            return s.replacingOccurrences(of: "/km", with: " min/mi")
-                    .replacingOccurrences(of: "/mi", with: " min/mi")
+            // Convertimos ritmo por km o ritmo por milla
+            let secPerMile = paceSecPerKm / 0.621371
+            let m = Int(secPerMile) / 60
+            let s = Int(secPerMile) % 60
+            return String(format: "%d:%02d min/mi", m, s)
         } else {
-            return s.replacingOccurrences(of: "/mi", with: " min/km")
-                    .replacingOccurrences(of: "/km", with: " min/km")
+            let m = Int(paceSecPerKm) / 60
+            let s = Int(paceSecPerKm) % 60
+            return String(format: "%d:%02d min/km", m, s)
         }
     }
     
+    /// Formatea el peso en kg o lb según preferencias del usuario.
     private func weightString(_ kg: Double, usePounds: Bool) -> String {
         if usePounds {
             let lb = kg * 2.20462
@@ -109,5 +114,16 @@ final class HomeViewModel: ObservableObject {
             return String(format: "%.1f kg", kg)
         }
     }
+}
+
+/// Elemento unificado que representa un ítem en la lista de la pantalla Home .
+struct HomeItem: Identifiable, Equatable {
+    let id: PersistentIdentifier
+    let date: Date
+    let title: String
+    let subtitle: String
+    let icon: String
+    enum Kind { case running, gym }
+    let kind: Kind
 }
 

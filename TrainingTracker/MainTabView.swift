@@ -6,6 +6,7 @@
 //
 import SwiftUI
 
+/// Vista principal de la navigation bar
 struct MainTabView: View {
     var body: some View {
         TabView {

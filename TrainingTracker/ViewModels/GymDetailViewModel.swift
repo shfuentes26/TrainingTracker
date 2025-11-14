@@ -7,18 +7,23 @@
 import SwiftUI
 import SwiftData
 
+/// ViewModel responsable de gestionar la vista de detalle de un entrenamiento de gimnasio (`GymTraining`).
 @MainActor
 final class GymDetailViewModel: ObservableObject {
+    /// Entrenamiento cargado desde SwiftData.
     @Published var session: GymTraining?
 
     private let id: PersistentIdentifier
+    /// Inicializa un ViewModel para mostrar un entrenamiento concreto.
     init(id: PersistentIdentifier) { self.id = id }
-
+    
+    /// Carga el entrenamiento desde SwiftData usando el identificador dado.
     func load(context: ModelContext) {
         session = try? context.model(for: id) as? GymTraining
     }
     
-    @discardableResult
+    /// Elimina el entrenamiento actual de la base de datos.
+    @discardableResult //elimina warning
     func delete(context: ModelContext) -> Bool {
         guard let session else { return false }
         context.delete(session)
@@ -26,7 +31,7 @@ final class GymDetailViewModel: ObservableObject {
         catch { return false }
     }
     
-    // Peso formateado según preferencia. Devuelve nil si no hay peso.
+    /// Devuelve el peso formateado según preferencia. Devuelve nil si no hay peso.
     func formattedWeight(usePounds: Bool) -> String? {
         guard let w = session?.weightKg else { return nil }
         if usePounds {

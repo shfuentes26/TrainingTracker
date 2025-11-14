@@ -7,6 +7,7 @@
 
 import SwiftUICore
 
+///vista de la home de Gym
 struct GymView: View {
     var body: some View {
         VStack(spacing: 12) {

@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-
+/// Vista principal que muestra la lista combinada de entrenamientos
 struct HomeView: View {
     
     @Environment(\.modelContext) private var modelContext
@@ -18,11 +18,13 @@ struct HomeView: View {
         NavigationStack {
             Group {
                 if vm.items.isEmpty {
+                    // Vista estándar de iOS para estados vacíos
                     ContentUnavailableView("There are no trainings yet", systemImage: "dumbbell")
                 } else {
                     List {
                         Section {
                             ForEach(vm.items) { item in
+                                // Navegación al detalle según el tipo de entrenamiento
                                 NavigationLink {
                                     switch item.kind {
                                     case .running:
@@ -33,6 +35,7 @@ struct HomeView: View {
                                 } label: {
                                     TrainingCardRow(item: item)
                                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                            // Eliminar el entrenamiento con swipe
                                             Button(role: .destructive) {
                                                 vm.delete(item, in: modelContext)
                                             } label: {
@@ -52,52 +55,7 @@ struct HomeView: View {
     }
 }
 
-    
-    private struct GymTrainingRow: View {
-        let session: GymTraining
-        
-        var body: some View {
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(session.date, format: .dateTime.day().month().year())
-                        .font(.headline)
-                    
-                    Text(gymSubtitle(session))
-                            .foregroundStyle(.secondary)
-                }
-            }
-            .contentShape(Rectangle())
-            // TODO: navegar al detalle .onTapGesture {}
-        }
-        
-        private func gymSubtitle(_ g: GymTraining) -> String {
-                if let w = g.weightKg {
-                    return "\(g.exercise.name) • \(g.reps) reps @ \(String(format: "%.1f kg", w))"
-                } else {
-                    return "\(g.exercise.name) • \(g.reps) reps"
-                }
-            }
-    }
-
-
-    
-    private struct RunningTrainingRow: View {
-        let run: RunningTraining
-
-        var body: some View {
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(run.date, format: .dateTime.day().month().year())
-                        .font(.headline)
-                    Text("\(run.distanceKm, format: .number) km • \(run.paceString)")
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .contentShape(Rectangle())
-        // TODO: navegar al detalle .onTapGesture {}
-        }
-    }
-
+///vista del entranamiento en la lista combinada
 private struct TrainingCardRow: View {
     let item: HomeItem
 

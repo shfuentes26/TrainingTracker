@@ -23,11 +23,6 @@ final class RunningTraining {
         self.notes = notes
     }
 
-    // Derivados útiles
-    var paceSecPerKm: Double { distanceKm > 0 ? Double(durationSec) / distanceKm : .infinity }
-    var paceString: String {
-        guard paceSecPerKm.isFinite else { return "–" }
-        let s = Int(paceSecPerKm.rounded())
-        return String(format: "%d:%02d /km", s/60, s%60)
-    }
+    // Utils
+    //var paceSecPerKm: Double { distanceKm > 0 ? Double(durationSec) / distanceKm : .infinity }
 }

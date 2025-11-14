@@ -7,6 +7,7 @@
 import SwiftUI
 import SwiftData
 
+/// ViewModel encargado de editar un entrenamiento de running existente.
 @MainActor
 final class RunningEditViewModel: ObservableObject {
     @Published var run: RunningTraining?
@@ -20,6 +21,7 @@ final class RunningEditViewModel: ObservableObject {
     private let id: PersistentIdentifier
     init(id: PersistentIdentifier) { self.id = id }
 
+    /// Carga un entrenamiento desde SwiftData y actualiza los campos del formulario.
     func load(context: ModelContext) {
         guard let r = try? context.model(for: id) as? RunningTraining else { return }
         run = r
@@ -29,11 +31,13 @@ final class RunningEditViewModel: ObservableObject {
         notes = r.notes ?? ""
     }
 
+    /// Validación general antes de guardar el entrenamiento:
     var canSave: Bool {
         (Double(distanceText.replacingOccurrences(of: ",", with: ".")) ?? -1) > 0 &&
         Self.parseHMS(durationText) != nil
     }
 
+    /// Guarda los cambios realizados en el entrenamiento.
     @discardableResult
     func save(context: ModelContext) -> RunningTraining? {
         guard let r = run else { return nil }
@@ -48,7 +52,7 @@ final class RunningEditViewModel: ObservableObject {
         do { try context.save(); return r } catch { return nil }
     }
 
-
+    /// Convierte un número de segundos a un formato "H:MM:SS".
     static func formatHMS(seconds: Int) -> String {
             let h = seconds / 3600
             let m = (seconds % 3600) / 60
@@ -56,6 +60,7 @@ final class RunningEditViewModel: ObservableObject {
             return String(format: "%d:%02d:%02d", h, m, s)
         }
 
+    /// Convierte un string "H:MM:SS" o "MM:SS" en segundos.
     static func parseHMS(_ text: String) -> TimeInterval? {
         let parts = text.split(separator: ":").map(String.init)
         guard (2...3).contains(parts.count) else { return nil }

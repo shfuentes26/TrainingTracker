@@ -8,38 +8,24 @@
 import SwiftUI
 import SwiftData
 
+///Main
 @main
 struct TrainingTrackerApp: App {
     
     init() {
-            let appearance = UINavigationBarAppearance()
-            appearance.configureWithOpaqueBackground()
-            appearance.backgroundColor = UIColor(named: "MainColor")
-            appearance.titleTextAttributes = [.foregroundColor: UIColor.black]
-            appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.black]
+        // Configuracion del estilo de la NavigationBar
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor(named: "MainColor")
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.black]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.black]
 
-            UINavigationBar.appearance().standardAppearance = appearance
-            UINavigationBar.appearance().scrollEdgeAppearance = appearance
-            UINavigationBar.appearance().compactAppearance = appearance
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        UINavigationBar.appearance().compactAppearance = appearance
 
-            UINavigationBar.appearance().tintColor = .black
-        }
-    
-    
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Exercise.self,
-            GymTraining.self,
-            RunningTraining.self
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+        UINavigationBar.appearance().tintColor = .black
+    }
 
     var body: some Scene {
         WindowGroup {

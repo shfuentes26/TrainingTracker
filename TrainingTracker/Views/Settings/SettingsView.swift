@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+///vista de la home de Settings
 struct SettingsView: View {
     @StateObject private var vm = SettingsViewModel()
 

@@ -7,6 +7,7 @@
 
 import SwiftUICore
 
+///Vista de la home de Running
 struct RunningView: View {
     var body: some View {
         VStack(spacing: 12) {

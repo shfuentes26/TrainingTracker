@@ -8,6 +8,8 @@ import Foundation
 import SwiftUI
 import SwiftData
 
+/// ViewModel responsable de gestionar la lógica del formulario
+/// de creación de un entrenamiento de gimnasio
 @MainActor
 final class GymTrainingViewModel: ObservableObject {
 
@@ -18,6 +20,7 @@ final class GymTrainingViewModel: ObservableObject {
     @Published var weightText: String = ""
     @Published var notes: String = ""
 
+    /// Datos para mostrar una alerta simple a la vista.
     struct AlertData: Identifiable {
         let id = UUID()
         let title: String
@@ -25,13 +28,13 @@ final class GymTrainingViewModel: ObservableObject {
     }
     @Published var alert: AlertData?
 
-
+    /// Indica si el formulario tiene los datos mínimos para guardar un entrenamiento
     var canSave: Bool {
         guard let reps = Int(repsText), reps > 0 else { return false }
         return selectedExerciseID != nil
     }
 
-
+    /// Guarda un nuevo entrenamiento de gimnasio en SwiftData.
     @discardableResult
     func saveGymTraining(context: ModelContext, exerciseByID: (UUID) -> Exercise?) -> Bool {
         // ejercicio
@@ -46,7 +49,7 @@ final class GymTrainingViewModel: ObservableObject {
                           message: "Reps must be greater than 0.")
             return false
         }
-        // peso (opcional)
+        // peso
         let weight = parseDouble(weightText)
 
         let training = GymTraining(
@@ -67,6 +70,7 @@ final class GymTrainingViewModel: ObservableObject {
         }
     }
 
+    /// Limpia todos los datos del formulario para empezar un nuevo registro.
     func resetForm() {
         date = Date()
         selectedExerciseID = nil
@@ -75,7 +79,7 @@ final class GymTrainingViewModel: ObservableObject {
         notes = ""
     }
 
-
+    /// Convierte un texto a Double para el peso para gestionar diferentes formatos
     private func parseDouble(_ text: String) -> Double? {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
         return Double(text.replacingOccurrences(of: ",", with: "."))
