@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 
-/// ViewModel responsable de la Home de trainings y de gestionar el formulario de creacion de un entrenamiento de running
+/// ViewModel responsable de gestionar losl formularios de creacion de un entrenamiento de running y de gym
 @MainActor
 final class NewTrainingViewModel: ObservableObject {
 
@@ -62,9 +62,16 @@ final class NewTrainingViewModel: ObservableObject {
         notes = ""
     }
 
-    /// Convierte el texto de distancia a Double, aceptando coma o punto.
+    /// Convierte el texto de distancia a Double, aceptando coma o punto y lo convierte a Km si el usuario esta usando millas.
     private func parseKm(_ text: String) -> Double? {
-        Double(text.replacingOccurrences(of: ",", with: "."))
+        // Primero convertimos el texto a Double
+        guard let value = Double(text.replacingOccurrences(of: ",", with: ".")) else {
+            return nil
+        }
+        // Obtenemos la preferencia del usuario
+        let useMiles = UserDefaults.standard.bool(forKey: "useMiles")
+        // Convertimos a km si el usuario está en millas
+        return useMiles ? (value * 1.60934) : value
     }
 
     /// Convierte el texto del tiempo en número total de segundos.
@@ -103,12 +110,22 @@ final class NewTrainingViewModel: ObservableObject {
         }
         // peso
         let weight = parseDouble(weightText)
+        
+        //preferencia de peso
+        let usePounds = UserDefaults.standard.bool(forKey: "usePounds")
+        //lo convertimos en kg si viene como pounds
+        let weightKg: Double?
+        if let w = weight {
+            weightKg = usePounds ? (w / 2.20462) : w
+        } else {
+            weightKg = nil
+        }
 
         let training = GymTraining(
                     exercise: exercise,
                     date: date,
                     reps: reps,
-                    weightKg: weight,
+                    weightKg: weightKg,
                     notes: notes.isEmpty ? nil : notes
                 )
 
@@ -125,7 +142,7 @@ final class NewTrainingViewModel: ObservableObject {
         }
     }
 
-    /// Limpia todos los datos del formulario para empezar un nuevo registro.
+    /// Limpia todos los datos del formulario para empezar un nuevo registro de gym.
     func resetForm() {
         date = Date()
         selectedExerciseID = nil

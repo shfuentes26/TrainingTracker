@@ -13,6 +13,8 @@ struct RunningTrainingForm: View {
     @State private var distance = ""
     @State private var duration = ""
     @State private var notes = ""
+    //preferencia de unidad de distancia
+    @AppStorage("useMiles") private var useMiles = false
     
     @Environment(\.modelContext) private var modelContext
     @StateObject private var vm = NewTrainingViewModel()
@@ -23,12 +25,14 @@ struct RunningTrainingForm: View {
                 DatePicker("Date", selection: $date, displayedComponents: .date)
                 
                 HStack {
-                    Text("Distance (km)")
+                    Text("Distance")
                     Spacer()
                     TextField("0", text: $vm.distanceText)
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 80)
+                    Text(useMiles ? "mi" : "km")         
+                                .foregroundStyle(.secondary)
                 }
                 
                 HStack {

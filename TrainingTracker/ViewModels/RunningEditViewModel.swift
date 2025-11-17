@@ -11,6 +11,8 @@ import SwiftData
 @MainActor
 final class RunningEditViewModel: ObservableObject {
     @Published var run: RunningTraining?
+    
+    private var useMiles: Bool = false
 
     // Campos de edición (strings para facilitar teclado/formato)
     @Published var date: Date = .now
@@ -22,11 +24,15 @@ final class RunningEditViewModel: ObservableObject {
     init(id: PersistentIdentifier) { self.id = id }
 
     /// Carga un entrenamiento desde SwiftData y actualiza los campos del formulario.
-    func load(context: ModelContext) {
+    func load(context: ModelContext, useMiles: Bool) {
         guard let r = try? context.model(for: id) as? RunningTraining else { return }
         run = r
         date = r.date
-        distanceText = String(format: "%.2f", r.distanceKm)
+        //convertumos siempre a Km
+        let km = r.distanceKm
+        let shownDistance = useMiles ? (km * 0.621371) : km
+        distanceText = String(format: "%.2f", shownDistance)
+        
         durationText = Self.formatHMS(seconds: r.durationSec)
         notes = r.notes ?? ""
     }
@@ -37,15 +43,27 @@ final class RunningEditViewModel: ObservableObject {
         Self.parseHMS(durationText) != nil
     }
 
-    /// Guarda los cambios realizados en el entrenamiento.
+    /// Guarda los cambios realizados en el entrenamiento de running
     @discardableResult
     func save(context: ModelContext) -> RunningTraining? {
         guard let r = run else { return nil }
-        let newDistance = Double(distanceText.replacingOccurrences(of: ",", with: ".")) ?? r.distanceKm
+        
+        let useMiles = UserDefaults.standard.bool(forKey: "useMiles")
+        
+        let raw = distanceText.replacingOccurrences(of: ",", with: ".")
+        let entered = Double(raw)
+        
+        let newDistanceKm: Double
+        if let value = entered {
+            newDistanceKm = useMiles ? (value * 1.60934) : value
+        } else {
+            newDistanceKm = r.distanceKm
+        }
+        
         let newDuration = Self.parseHMS(durationText) ?? TimeInterval(r.durationSec)
 
         r.date = date
-        r.distanceKm = newDistance
+        r.distanceKm = newDistanceKm
         r.durationSec = Int(newDuration)
         r.notes = notes.isEmpty ? nil : notes
 
@@ -54,11 +72,11 @@ final class RunningEditViewModel: ObservableObject {
 
     /// Convierte un número de segundos a un formato "H:MM:SS".
     static func formatHMS(seconds: Int) -> String {
-            let h = seconds / 3600
-            let m = (seconds % 3600) / 60
-            let s = seconds % 60
-            return String(format: "%d:%02d:%02d", h, m, s)
-        }
+        let h = seconds / 3600
+        let m = (seconds % 3600) / 60
+        let s = seconds % 60
+        return String(format: "%d:%02d:%02d", h, m, s)
+    }
 
     /// Convierte un string "H:MM:SS" o "MM:SS" en segundos.
     static func parseHMS(_ text: String) -> TimeInterval? {

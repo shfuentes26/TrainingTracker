@@ -16,10 +16,14 @@ struct GymTrainingForm: View {
     //VM
     @StateObject private var vm = NewTrainingViewModel()
     
+    
+    
     //states para alertas
     @State private var showAlert = false
     @State private var alertTitle = ""
     @State private var alertMessage = ""
+    //preferencia de unidad de peso
+    @AppStorage("usePounds") private var usePounds = false
     
     @Query(sort: [SortDescriptor(\Exercise.name, order: .forward)])
     private var allExercises: [Exercise]
@@ -66,11 +70,12 @@ struct GymTrainingForm: View {
                 HStack {
                     Text("Weight")
                     Spacer()
-                    TextField("kg", text: $vm.weightText)
+                    TextField(usePounds ? "lb" : "kg", text: $vm.weightText)
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 100)
-                    Text("kg").foregroundStyle(.secondary)
+                    Text(usePounds ? "lb" : "kg")
+                            .foregroundStyle(.secondary)
                 }
             }
             Section("Notes") {

@@ -12,6 +12,9 @@ struct RunningEditView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @StateObject private var vm: RunningEditViewModel
+    
+    //preferencia de unidad de distancia
+    @AppStorage("useMiles") private var useMiles = false
 
     var onSaved: ((RunningTraining) -> Void)?
 
@@ -27,12 +30,14 @@ struct RunningEditView: View {
                     DatePicker("Date", selection: $vm.date, displayedComponents: [.date, .hourAndMinute])
 
                     HStack {
-                        Text("Distance (km)")
+                        Text("Distance")
                         Spacer()
-                        TextField("0.00", text: $vm.distanceText)
-                            .keyboardType(.decimalPad)
+                        TextField("0", text: $vm.distanceText)
+                            .keyboardType(.numberPad)
                             .multilineTextAlignment(.trailing)
-                            .frame(width: 100)
+                            .frame(width: 80)
+                        Text(useMiles ? "mi" : "km")
+                                    .foregroundStyle(.secondary)
                     }
 
                     HStack {
@@ -60,7 +65,8 @@ struct RunningEditView: View {
                     Button("Save") { save() }.bold().disabled(!vm.canSave)
                 }
             }
-            .task { vm.load(context: modelContext) }
+            //pasamos la preferencia de distancia al vm
+            .task { vm.load(context: modelContext, useMiles: useMiles) }
         }
     }
 
