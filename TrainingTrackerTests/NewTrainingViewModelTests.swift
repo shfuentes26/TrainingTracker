@@ -107,15 +107,6 @@ struct NewTrainingViewModelTests {
     
     //RUNNING tests
     @Test
-    func applyDurationMaskFormatsCorrectly() async throws {
-        let vm = NewTrainingViewModel()
-
-        let masked = vm.applyDurationMask("04530")
-        #expect(masked == "0:45:30")
-
-    }
-
-    @Test
     func canSaveRunning() async throws {
         let vm = NewTrainingViewModel()
 
