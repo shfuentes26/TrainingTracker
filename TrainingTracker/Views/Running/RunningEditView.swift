@@ -7,6 +7,7 @@
 import SwiftUI
 import SwiftData
 
+/// Vista para editar un entrenamiento de carrera existente
 struct RunningEditView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss

@@ -6,7 +6,7 @@
 //
 import SwiftUI
 import SwiftData
-
+///Formulario para crear un entrenamiento de carrera
 struct RunningTrainingForm: View {
     
     @State private var date = Date()
@@ -15,8 +15,7 @@ struct RunningTrainingForm: View {
     @State private var notes = ""
     
     @Environment(\.modelContext) private var modelContext
-    @StateObject private var vm = RunningTrainingViewModel()
-    
+    @StateObject private var vm = NewTrainingViewModel()
     
     var body: some View {
         Form {

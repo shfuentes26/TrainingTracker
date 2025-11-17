@@ -14,7 +14,7 @@ struct GymTrainingForm: View {
     //contexto de la DB
     @Environment(\.modelContext) private var modelContext
     //VM
-    @StateObject private var vm = GymTrainingViewModel()
+    @StateObject private var vm = NewTrainingViewModel()
     
     //states para alertas
     @State private var showAlert = false
@@ -82,13 +82,16 @@ struct GymTrainingForm: View {
                     let exerciseByID: (UUID) -> Exercise? = { id in
                         allExercises.first(where: { $0.id == id })
                     }
-                    if vm.saveGymTraining(context: modelContext, exerciseByID: exerciseByID) {
+
+                    let success = vm.saveGymTraining(context: modelContext, exerciseByID: exerciseByID)
+                    if success {
                         vm.resetForm()
-                    } else if let alertData = vm.alert {
+                    }
+                    if let alertData = vm.alert {
                         alertTitle = alertData.title
                         alertMessage = alertData.message
                         showAlert = true
-                        vm.alert = nil 
+                        vm.alert = nil
                     }
                 } label: {
                     Text("Save")

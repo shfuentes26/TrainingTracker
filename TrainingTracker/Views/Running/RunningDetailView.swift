@@ -7,6 +7,7 @@
 import SwiftUI
 import SwiftData
 
+///// Vista de detalle para un entrenamiento de running
 struct RunningDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -17,7 +18,7 @@ struct RunningDetailView: View {
     init(id: PersistentIdentifier) {
         _vm = StateObject(wrappedValue: RunningDetailViewModel(id: id))
     }
-
+    
     var body: some View {
         Group {
             if let r = vm.run {

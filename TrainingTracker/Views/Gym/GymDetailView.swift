@@ -7,6 +7,7 @@
 import SwiftUI
 import SwiftData
 
+///Vista de detalle de un entranamieneto de gimnasio
 struct GymDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -65,14 +66,17 @@ struct GymDetailView: View {
         }
         .navigationTitle("Details")
         .navigationBarTitleDisplayMode(.large)
+        // Botones en la barra superior
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button("Edit")  { showEdit = true }
                 Button("Delete", role: .destructive) {
+                    //si el guardado es correcto, cerramos la vista
                     if vm.delete(context: modelContext) { dismiss() }
                 }
             }
         }
+        //edición
         .sheet(isPresented: $showEdit) {
             if let id = vm.session?.persistentModelID {
                 GymEditView(id: id) { _ in

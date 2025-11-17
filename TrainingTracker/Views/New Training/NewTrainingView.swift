@@ -13,7 +13,7 @@ enum NewTrainingTab: String, CaseIterable, Identifiable {
     case running = "Running"
     var id: Self { self }
 }
-
+///Vista principal para crear un nuevo entrenamiento
 struct NewTrainingView: View {
     @State private var tab: NewTrainingTab = .gym
 
@@ -28,12 +28,11 @@ struct NewTrainingView: View {
             .pickerStyle(.segmented)
             .padding(.horizontal)
             .padding(.top, 8)
-
-            // Contenido de cada pestaña
+            // Formularios de cada pestaña
             if tab == .gym {
-                    GymTrainingForm()
-                } else {
-                    RunningTrainingForm()
+                GymTrainingForm()
+            } else {
+                RunningTrainingForm()
             }
         }
         .navigationTitle("New Training")

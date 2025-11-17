@@ -8,83 +8,85 @@ import Foundation
 import SwiftUI
 import SwiftData
 
-/// ViewModel responsable de gestionar el formulario de creacion de un entrenamiento de running
+/// ViewModel responsable de la Home de trainings
 @MainActor
 final class RunningTrainingViewModel: ObservableObject {
+    // Elementos que se muestran en la lista de Running.
+    @Published var items: [HomeItem] = []
 
+    // Carga todos los entrenamientos de running desde SwiftData.
+    func load(context: ModelContext) {
+        // Preferencia de unidades de distancia
+        let useMiles = UserDefaults.standard.bool(forKey: "useMiles")
 
-    @Published var date: Date = .now
-    @Published var distanceText: String = ""
-    @Published var durationText: String = ""  
-    @Published var notes: String = ""
+        // Fetch de entrenamientos de Running ordenados por fecha descendente
+        let runDesc = FetchDescriptor<RunningTraining>(
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        let runs = (try? context.fetch(runDesc)) ?? []
 
-    @Published var alert: (title: String, message: String)?
+        var runningItems: [HomeItem] = []
 
-    /// Indica si el formulario tiene datos suficientes para guardar el entrenamiento
-    var canSave: Bool {
-        (parseKm(distanceText) ?? 0) > 0 && (parseHMS(durationText) ?? 0) > 0
-    }
+        for r in runs {
+            let distance = distanceString(r.distanceKm, useMiles: useMiles)
+            let pace     = paceString(from: r, useMiles: useMiles)
 
-    /// Guarda un nuevo entrenamiento de running en SwiftData.
-    func save(using context: ModelContext) {
-        guard let km = parseKm(distanceText), km > 0 else {
-            alert = ("Distance required", "The distance can't be 0")
-            return
+            runningItems.append(
+                HomeItem(
+                    id: r.persistentModelID,
+                    date: r.date,
+                    title: "Run training",
+                    subtitle: "\(distance) • \(pace)",
+                    icon: "figure.run",
+                    kind: .running
+                )
+            )
         }
-        guard let secs = parseHMS(durationText), secs > 0 else {
-            alert = ("Duration required", "Time is incorrect")
-            return
-        }
-        let obj = RunningTraining(date: date,
-                                  distanceKm: km,
-                                  durationSec: secs,
-                                  notes: notes.isEmpty ? nil : notes)
-        context.insert(obj)
-        do {
-            try context.save()
-            reset()
-            alert = ("Saved", "Training saved successfully.")
-        } catch {
-            alert = ("Error", "Training couldn't be saved: \(error.localizedDescription)")
-        }
-    }
-    /// Limpia todos los campos del formulario
-    func reset() {
-        date = .now
-        distanceText = ""
-        durationText = ""
-        notes = ""
+
+        // Aseguramos orden por fecha descendente
+        runningItems.sort { $0.date > $1.date }
+        self.items = runningItems
     }
 
-    /// Aplica una máscara automática al campo de duración para convertir a h:mm:ss
-    func applyDurationMask(_ raw: String) -> String {
-        let digits = raw.filter { $0.isNumber }
-        var out = ""
-        let c = Array(digits)
-        if c.count > 0 { out.append(c[0]) }
-        if c.count > 1 { out.append(":"); out.append(c[1]) }
-        if c.count > 2 { out.append(c[2]) }
-        if c.count > 3 { out.append(":"); out.append(c[3]) }
-        if c.count > 4 { out.append(c[4]) }
-        if c.count > 5 { out.append(c[5]) }
-        return String(out.prefix(8))
-    }
-
-    /// Convierte el texto de distancia a Double, aceptando coma o punto.
-    private func parseKm(_ text: String) -> Double? {
-        Double(text.replacingOccurrences(of: ",", with: "."))
-    }
-
-    /// Convierte el texto del tiempo en número total de segundos.
-    private func parseHMS(_ text: String) -> Int? {
-        let parts = text.split(separator: ":").map { Int($0) ?? 0 }
-        guard (1...3).contains(parts.count) else { return nil }
-        let (h, m, s): (Int, Int, Int)
-        switch parts.count {
-        case 3: (h, m, s) = (parts[0], parts[1], parts[2])
-        case 2: (h, m, s) = (0, parts[0], parts[1])
-        default:(h, m, s) = (0, 0, parts[0])
+    // Elimina un entrenamiento de running y recarga la lista.
+    func delete(_ item: HomeItem, in context: ModelContext) {
+        if let model = try? context.model(for: item.id) {
+            context.delete(model)
+            try? context.save()
+            load(context: context)
         }
-        return max(0, h*3600 + m*60 + s)
+    }
+
+    // MARK: - Helpers copiados de HomeViewModel
+
+    // Convierte kilómetros o millas según preferencia del usuario.
+    private func distanceString(_ km: Double, useMiles: Bool) -> String {
+        if useMiles {
+            let mi = km * 0.621371
+            return String(format: "%.1f mi", mi)
+        } else {
+            return String(format: "%.1f km", km)
+        }
+    }
+
+    // Normaliza el string de pace del modelo (5:00 /km o 5:00 /mi)
+    private func paceString(from run: RunningTraining, useMiles: Bool) -> String {
+        let paceSecPerKm: Double = {
+            guard run.distanceKm > 0 else { return .infinity }
+            return Double(run.durationSec) / run.distanceKm
+        }()
+        guard paceSecPerKm.isFinite else { return "–" }
+
+        if useMiles {
+            let secPerMile = paceSecPerKm / 0.621371
+            let m = Int(secPerMile) / 60
+            let s = Int(secPerMile) % 60
+            return String(format: "%d:%02d min/mi", m, s)
+        } else {
+            let m = Int(paceSecPerKm) / 60
+            let s = Int(paceSecPerKm) % 60
+            return String(format: "%d:%02d min/km", m, s)
+        }
     }
 }
+

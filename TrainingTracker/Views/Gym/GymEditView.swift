@@ -7,6 +7,7 @@
 import SwiftUI
 import SwiftData
 
+/// Vista para editar un entrenamiento de gimnasio existente
 struct GymEditView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -38,7 +39,6 @@ struct GymEditView: View {
                             Text(ex.name).tag(ex.id as UUID?)
                         }
                     }
-
                     HStack {
                         Text("Reps")
                         Spacer()
@@ -47,24 +47,21 @@ struct GymEditView: View {
                             .multilineTextAlignment(.trailing)
                             .frame(width: 80)
                     }
-
-                    let usesWeight = selectedExercise?.usesVariableWeight ?? true
                     HStack {
                         Text("Weight")
                         Spacer()
-                        TextField(usesWeight ? (usePounds ? "lb" : "kg") : "—",
+                        TextField(vm.usesWeight ? (usePounds ? "lb" : "kg") : "—",
                                   text: $vm.weightText)
                             .keyboardType(.decimalPad)
                             .multilineTextAlignment(.trailing)
                             .frame(width: 100)
-                            .disabled(!usesWeight)
-                            .opacity(usesWeight ? 1 : 0.4)
-                        Text(usePounds ? "lb" : "kg")   
+                            .disabled(!vm.usesWeight)
+                            .opacity(vm.usesWeight ? 1 : 0.4)
+                        Text(usePounds ? "lb" : "kg")
                             .foregroundStyle(.secondary)
-                            .opacity(usesWeight ? 1 : 0.4)
+                            .opacity(vm.usesWeight ? 1 : 0.4)
                     }
                 }
-
                 Section("Notes") {
                     TextField("Optional notes…", text: $vm.notes, axis: .vertical)
                         .lineLimit(3, reservesSpace: true)
@@ -90,12 +87,6 @@ struct GymEditView: View {
         }
     }
 
-    private var selectedExercise: Exercise? {
-        if let id = vm.selectedExerciseID {
-            return allExercises.first(where: { $0.id == id })
-        }
-        return nil
-    }
 
     private func save() {
         let lookup: (UUID) -> Exercise? = { id in

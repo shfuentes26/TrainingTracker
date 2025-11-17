@@ -8,80 +8,70 @@ import Foundation
 import SwiftUI
 import SwiftData
 
-/// ViewModel responsable de gestionar la lógica del formulario
-/// de creación de un entrenamiento de gimnasio
+/// ViewModel responsable de la home de entrenamientos de gimnasio
 @MainActor
 final class GymTrainingViewModel: ObservableObject {
 
-    @Published var date = Date()
-    @Published var category: GymGroup = .core
-    @Published var selectedExerciseID: UUID?
-    @Published var repsText: String = ""
-    @Published var weightText: String = ""
-    @Published var notes: String = ""
+    // Elementos que se muestran en la lista de Gym.
+    @Published var items: [HomeItem] = []
 
-    /// Datos para mostrar una alerta simple a la vista.
-    struct AlertData: Identifiable {
-        let id = UUID()
-        let title: String
-        let message: String
-    }
-    @Published var alert: AlertData?
+    // Carga todos los entrenamientos de gym desde SwiftData.
+    func load(context: ModelContext) {
+        // Preferencia de unidades de peso
+        let usePounds = UserDefaults.standard.bool(forKey: "usePounds")
 
-    /// Indica si el formulario tiene los datos mínimos para guardar un entrenamiento
-    var canSave: Bool {
-        guard let reps = Int(repsText), reps > 0 else { return false }
-        return selectedExerciseID != nil
-    }
+        // Fetch de entrenamientos de Gym ordenados por fecha descendente
+        let gymDesc = FetchDescriptor<GymTraining>(
+            sortBy: [SortDescriptor(\.date, order: .reverse)]
+        )
+        let gyms = (try? context.fetch(gymDesc)) ?? []
 
-    /// Guarda un nuevo entrenamiento de gimnasio en SwiftData.
-    @discardableResult
-    func saveGymTraining(context: ModelContext, exerciseByID: (UUID) -> Exercise?) -> Bool {
-        // ejercicio
-        guard let id = selectedExerciseID, let exercise = exerciseByID(id) else {
-            alert = .init(title: "Select an exercise",
-                          message: "Please choose an exercise for \(category.rawValue).")
-            return false
-        }
-        // reps
-        guard let reps = Int(repsText), reps > 0 else {
-            alert = .init(title: "Add repetitions",
-                          message: "Reps must be greater than 0.")
-            return false
-        }
-        // peso
-        let weight = parseDouble(weightText)
+        var gymItems: [HomeItem] = []
 
-        let training = GymTraining(
-                    exercise: exercise,
-                    date: date,
-                    reps: reps,
-                    weightKg: weight,
-                    notes: notes.isEmpty ? nil : notes
+        for g in gyms {
+            let details: String = {
+                if let w = g.weightKg {
+                    return "\(g.exercise.name) • \(g.reps) reps @ \(weightString(w, usePounds: usePounds))"
+                } else {
+                    return "\(g.exercise.name) • \(g.reps) reps"
+                }
+            }()
+
+            gymItems.append(
+                HomeItem(
+                    id: g.persistentModelID,
+                    date: g.date,
+                    title: "Gym training",
+                    subtitle: details,
+                    icon: "dumbbell.fill",
+                    kind: .gym
                 )
+            )
+        }
 
-        context.insert(training)
-        do {
-            try context.save()
-            return true
-        } catch {
-            alert = .init(title: "Save failed", message: error.localizedDescription)
-            return false
+        // Orden por fecha descendente por si acaso
+        gymItems.sort { $0.date > $1.date }
+        self.items = gymItems
+    }
+
+    /// Elimina un entrenamiento de gym y recarga la lista.
+    func delete(_ item: HomeItem, in context: ModelContext) {
+        if let model = try? context.model(for: item.id) {
+            context.delete(model)
+            try? context.save()
+            load(context: context)
         }
     }
 
-    /// Limpia todos los datos del formulario para empezar un nuevo registro.
-    func resetForm() {
-        date = Date()
-        selectedExerciseID = nil
-        repsText = ""
-        weightText = ""
-        notes = ""
-    }
-
-    /// Convierte un texto a Double para el peso para gestionar diferentes formatos
-    private func parseDouble(_ text: String) -> Double? {
-        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
-        return Double(text.replacingOccurrences(of: ",", with: "."))
+    /// Formatea el peso en kg o lb según preferencias del usuario.
+    private func weightString(_ kg: Double, usePounds: Bool) -> String {
+        if usePounds {
+            let lb = kg * 2.20462
+            return String(format: "%.1f lb", lb)
+        } else {
+            return String(format: "%.1f kg", kg)
+        }
     }
 }
+
+

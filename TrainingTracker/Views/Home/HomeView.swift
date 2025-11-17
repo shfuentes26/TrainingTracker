@@ -17,12 +17,13 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             Group {
+                //TODO: falta la parte de goals 
                 if vm.items.isEmpty {
                     // Vista estándar de iOS para estados vacíos
                     ContentUnavailableView("There are no trainings yet", systemImage: "dumbbell")
                 } else {
                     List {
-                        Section {
+                        Section ("Past trainings") {
                             ForEach(vm.items) { item in
                                 // Navegación al detalle según el tipo de entrenamiento
                                 NavigationLink {

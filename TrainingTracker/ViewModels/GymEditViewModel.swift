@@ -17,6 +17,7 @@ final class GymEditViewModel: ObservableObject {
     @Published var repsText: String = ""
     @Published var weightText: String = ""
     @Published var notes: String = ""
+    @Published var usesWeight: Bool = true
 
     private let id: PersistentIdentifier
     private var usePounds: Bool = false
@@ -38,6 +39,18 @@ final class GymEditViewModel: ObservableObject {
             weightText = ""
         }
         notes = g.notes ?? ""
+        usesWeight = g.exercise.usesVariableWeight
+    }
+    
+    /// Actualiza usesWeight cuando cambia el ejercicio seleccionado.
+    func refreshUsesWeight(exerciseByID: (UUID) -> Exercise?) {
+        if let id = selectedExerciseID,
+           let ex = exerciseByID(id) {
+            usesWeight = ex.usesVariableWeight
+        } else {
+            // por defecto true para no bloquear el campo
+            usesWeight = true
+        }
     }
 
     /// Valida si el entrenamiento puede guardarse.
