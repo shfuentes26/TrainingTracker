@@ -34,15 +34,11 @@ struct RunningTrainingForm: View {
                 HStack {
                     Text("Duration (h:mm:ss)")
                     Spacer()
-                    TextField("0:00:00", text: Binding(
-                        get: { vm.durationText },
-                        set: { vm.durationText = vm.applyDurationMask($0) }
-                    ))
-                    .keyboardType(.numbersAndPunctuation)
-                    .multilineTextAlignment(.trailing)
-                    .frame(width: 90)
+                    TextField("0:45:00", text: $vm.durationText)
+                        .keyboardType(.numbersAndPunctuation)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 90)
                 }
-                
             }
             Section("Notes") {
                 TextField("Optional notes…", text: $vm.notes, axis: .vertical)

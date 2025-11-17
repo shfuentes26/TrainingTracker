@@ -62,20 +62,6 @@ final class NewTrainingViewModel: ObservableObject {
         notes = ""
     }
 
-    /// Aplica una máscara automática al campo de duración para convertir a h:mm:ss
-    func applyDurationMask(_ raw: String) -> String {
-        let digits = raw.filter { $0.isNumber }
-        var out = ""
-        let c = Array(digits)
-        if c.count > 0 { out.append(c[0]) }
-        if c.count > 1 { out.append(":"); out.append(c[1]) }
-        if c.count > 2 { out.append(c[2]) }
-        if c.count > 3 { out.append(":"); out.append(c[3]) }
-        if c.count > 4 { out.append(c[4]) }
-        if c.count > 5 { out.append(c[5]) }
-        return String(out.prefix(8))
-    }
-
     /// Convierte el texto de distancia a Double, aceptando coma o punto.
     private func parseKm(_ text: String) -> Double? {
         Double(text.replacingOccurrences(of: ",", with: "."))
