@@ -13,7 +13,7 @@ struct SettingsView: View {
 
         var body: some View {
             List {
-                Section {
+                Section ("Settings") {
                     Button("Import from Apple Health") {
                         // TODO: como metemos los entrenamientos de Health??
                     }
