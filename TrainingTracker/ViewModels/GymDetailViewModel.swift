@@ -10,14 +10,12 @@ import SwiftData
 /// ViewModel responsable de gestionar la vista de detalle de un entrenamiento de gimnasio (`GymTraining`).
 @MainActor
 final class GymDetailViewModel: ObservableObject {
-    /// Entrenamiento cargado desde SwiftData.
     @Published var session: GymTraining?
 
     private let id: PersistentIdentifier
-    /// Inicializa un ViewModel para mostrar un entrenamiento concreto.
     init(id: PersistentIdentifier) { self.id = id }
     
-    /// Carga el entrenamiento desde SwiftData usando el identificador dado.
+    // Carga el entrenamiento desde SwiftData usando el identificador dado.
     func load(context: ModelContext) {
         session = try? context.model(for: id) as? GymTraining
     }

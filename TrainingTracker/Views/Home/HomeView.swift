@@ -16,42 +16,44 @@ struct HomeView: View {
     
     var body: some View {
         NavigationStack {
-            Group {
-                //TODO: falta la parte de goals 
-                if vm.items.isEmpty {
-                    // Vista estándar de iOS para estados vacíos
-                    ContentUnavailableView("There are no trainings yet", systemImage: "dumbbell")
-                } else {
-                    List {
-                        Section ("Past trainings") {
-                            ForEach(vm.items) { item in
-                                // Navegación al detalle según el tipo de entrenamiento
-                                NavigationLink {
-                                    switch item.kind {
-                                    case .running:
-                                        RunningDetailView(id: item.id)
-                                    case .gym:
-                                        GymDetailView(id: item.id)
-                                    }
-                                } label: {
-                                    TrainingCardRow(item: item)
-                                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                            // Eliminar el entrenamiento con swipe
-                                            Button(role: .destructive) {
-                                                vm.delete(item, in: modelContext)
-                                            } label: {
-                                                Label("Delete", systemImage: "trash")
-                                            }
+            VStack(spacing: 16) {
+                //Goals
+                GoalsHeaderView()
+                // Entrenamientos
+                Group {
+                    if vm.items.isEmpty {
+                        ContentUnavailableView("There are no trainings yet", systemImage: "dumbbell")
+                    } else {
+                        List {
+                            Section("Past trainings") {
+                                ForEach(vm.items) { item in
+                                    NavigationLink {
+                                        switch item.kind {
+                                        case .running:
+                                            RunningDetailView(id: item.id)
+                                        case .gym:
+                                            GymDetailView(id: item.id)
                                         }
+                                    } label: {
+                                        TrainingCardRow(item: item)
+                                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                                Button(role: .destructive) {
+                                                    vm.delete(item, in: modelContext)
+                                                } label: {
+                                                    Label("Delete", systemImage: "trash")
+                                                }
+                                            }
+                                    }
                                 }
                             }
                         }
+                        .listStyle(.insetGrouped)
                     }
-                    .listStyle(.insetGrouped)
                 }
             }
             .navigationTitle("Home")
             .onAppear { vm.load(context: modelContext) }
+            .background(Color(.systemGray6))
         }
     }
 }

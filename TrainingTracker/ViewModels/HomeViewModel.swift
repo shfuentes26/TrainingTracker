@@ -11,6 +11,10 @@ import SwiftData
 @MainActor
 final class HomeViewModel: ObservableObject {
     @Published var items: [HomeItem] = []
+    
+    //TODO: solo para testing
+    //@Published var runningGoalSummary: String?
+    //@Published var gymGoalSummary: String?
 
     func load(context: ModelContext) {
         //Preferencias de unidades de medidas
@@ -59,8 +63,14 @@ final class HomeViewModel: ObservableObject {
                 kind: .gym
             ))
         }
+        
+        //TODO: solo para testing
+        //let summary = GoalsViewModel.currentWeekSummary(context: context)
+        //runningGoalSummary = summary.running
+        //gymGoalSummary = summary.gym
+        
+        //print("HomeViewModel. running=\(runningGoalSummary ?? "nil"), gym=\(gymGoalSummary ?? "nil")")
 
-        // Sort by date desc to intercalar ambas
         merged.sort { $0.date > $1.date }
         self.items = merged
     }
@@ -84,7 +94,7 @@ final class HomeViewModel: ObservableObject {
         }
     }
     
-    /// Normaliza el string de pace del modelo (5:00 /km o 5:00 /mi)
+    /// Normaliza el string de pace del modelo (5:00 min/km o 5:00 min/mi)
     private func paceString(from run: RunningTraining, useMiles: Bool) -> String {
         let paceSecPerKm: Double = {
             guard run.distanceKm > 0 else { return .infinity }

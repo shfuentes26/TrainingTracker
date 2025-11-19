@@ -33,6 +33,9 @@ struct TrainingTrackerApp: App {
         }
         .modelContainer(for: [Exercise.self,
                               GymTraining.self,
-                              RunningTraining.self])
+                              RunningTraining.self,
+                              RunningGoal.self,
+                              GymGoal.self,
+                              GymMuscleGoal.self])
     }
 }
