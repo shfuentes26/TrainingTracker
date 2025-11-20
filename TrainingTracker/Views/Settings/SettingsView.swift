@@ -18,7 +18,7 @@ struct SettingsView: View {
                         // TODO: como metemos los entrenamientos de Health??
                     }
                     NavigationLink("Manage exercises") {
-                        // TODO: flujo para ver y crear nuevos ejercicios
+                        ExercisesListView()
                     }
                 }
 

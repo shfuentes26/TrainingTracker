@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import SwiftUI
 
 
 /// ViewModel responsable de gestionar losl formularios de creacion de un entrenamiento de running y de gym
@@ -25,6 +26,25 @@ final class NewTrainingViewModel: ObservableObject {
     
 
     @Published var alert: (title: String, message: String)?
+    @Published var allExercises: [Exercise] = []
+    
+    var filteredExercises: [Exercise] {
+        allExercises.filter { $0.group == category }
+    }
+    
+    /// carga los ejercicios de DB
+    @MainActor
+    func loadExercises(context: ModelContext) {
+        do {
+            let descriptor = FetchDescriptor<Exercise>(
+                sortBy: [SortDescriptor(\.name, order: .forward)]
+            )
+            allExercises = try context.fetch(descriptor)
+            //ensureValidSelection()
+        } catch {
+            print("Error fetching exercises: \(error)")
+        }
+    }
     
     /// Indica si el formulario tiene datos suficientes para guardar el entrenamiento
     var canSaveRunning: Bool {
@@ -97,35 +117,26 @@ final class NewTrainingViewModel: ObservableObject {
     @discardableResult
     func saveGymTraining(context: ModelContext, exerciseByID: (UUID) -> Exercise?) -> Bool {
         // ejercicio
-        guard let id = selectedExerciseID, let exercise = exerciseByID(id) else {
-            alert = (title: "Select an exercise",
-                         message: "Please choose an exercise for \(category.rawValue).")
+        guard let exerciseID = selectedExerciseID,
+            let exercise = allExercises.first(where: { $0.id == exerciseID }) else {
+            alert = (title: "Missing exercise",
+                message: "Please select an exercise.")
             return false
-        }
+            }
         // reps
         guard let reps = Int(repsText), reps > 0 else {
             alert = (title: "Add repetitions",
-                         message: "Reps must be greater than 0.")
+                message: "Reps must be greater than 0.")
             return false
         }
-        // peso
-        let weight = parseDouble(weightText)
-        
         //preferencia de peso
         let usePounds = UserDefaults.standard.bool(forKey: "usePounds")
-        //lo convertimos en kg si viene como pounds
-        let weightKg: Double?
-        if let w = weight {
-            weightKg = usePounds ? (w / 2.20462) : w
-        } else {
-            weightKg = nil
-        }
 
         let training = GymTraining(
                     exercise: exercise,
                     date: date,
                     reps: reps,
-                    weightKg: weightKg,
+                    weightKg: parseKg(weightText, usePounds: usePounds),
                     notes: notes.isEmpty ? nil : notes
                 )
 
@@ -150,11 +161,27 @@ final class NewTrainingViewModel: ObservableObject {
         weightText = ""
         notes = ""
     }
+    
+    ///
+    func ensureValidSelection() {
+        if let id = selectedExerciseID,
+           filteredExercises.contains(where: { $0.id == id }) {
+            return
+        }
+        selectedExerciseID = filteredExercises.first?.id
+    }
+    
 
-    /// Convierte un texto a Double para el peso para gestionar diferentes formatos
-    private func parseDouble(_ text: String) -> Double? {
-        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return nil }
-        return Double(text.replacingOccurrences(of: ",", with: "."))
+    // HELPER 
+    /// Convierte texto del formulario a Double y convierte a kg si el usuario usa libras para guardarlo en SwiftData
+    private func parseKg(_ text: String, usePounds: Bool) -> Double? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        guard let value = Double(trimmed.replacingOccurrences(of: ",", with: ".")) else {
+            return nil
+        }
+        // Si el usuario está en libras → convertimos a kg
+        return usePounds ? (value / 2.20462) : value
     }
 }
 

@@ -16,21 +16,12 @@ struct GymTrainingForm: View {
     //VM
     @StateObject private var vm = NewTrainingViewModel()
     
-    
-    
     //states para alertas
     @State private var showAlert = false
     @State private var alertTitle = ""
     @State private var alertMessage = ""
     //preferencia de unidad de peso
     @AppStorage("usePounds") private var usePounds = false
-    
-    @Query(sort: [SortDescriptor(\Exercise.name, order: .forward)])
-    private var allExercises: [Exercise]
-    
-    private var filteredExercises: [Exercise] {
-        allExercises.filter { $0.group == vm.category }
-    }
     
     var body: some View {
         Form {
@@ -43,13 +34,13 @@ struct GymTrainingForm: View {
                 }
                 .pickerStyle(.segmented)
                 // Lista dinámica de ejercicios según la categoría
-                if filteredExercises.isEmpty {
+                if vm.filteredExercises.isEmpty {
                     Text("No exercises for \(vm.category.rawValue).")
                         .foregroundStyle(.secondary)
                 } else {
                     // Para que el Picker funcione con UUID
                     let items: [(UUID, String, Bool)] =
-                        filteredExercises.map { ($0.id, $0.name, $0.usesVariableWeight) }
+                    vm.filteredExercises.map { ($0.id, $0.name, $0.usesVariableWeight) }
 
                     Picker("Exercise", selection: $vm.selectedExerciseID) {
                         Text("Select an exercise").tag(nil as UUID?)
@@ -58,7 +49,6 @@ struct GymTrainingForm: View {
                         }
                     }
                 }
-                
                 HStack {
                     Text("Reps")
                     Spacer()
@@ -85,7 +75,7 @@ struct GymTrainingForm: View {
             Section {
                 Button {
                     let exerciseByID: (UUID) -> Exercise? = { id in
-                        allExercises.first(where: { $0.id == id })
+                        vm.allExercises.first(where: { $0.id == id })
                     }
 
                     let success = vm.saveGymTraining(context: modelContext, exerciseByID: exerciseByID)
@@ -109,9 +99,15 @@ struct GymTrainingForm: View {
             }
             
         }
-        .onAppear { ensureSelection() }
-        .onChange(of: vm.category) { _, _ in ensureSelection() }
-        .onChange(of: allExercises) { _, _ in ensureSelection() }
+        .onAppear {
+            print("category=\(vm.category)")
+            print("allExercises=\(vm.allExercises.map { "\($0.name)(\($0.id))" })")
+            vm.loadExercises(context: modelContext)
+        }
+        .onChange(of: vm.category) { _, _ in
+            print("allExercises=\(vm.allExercises.map { "\($0.name)(\($0.id))" })")
+            vm.ensureValidSelection()
+        }
         .alert(alertTitle, isPresented: $showAlert) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -119,11 +115,4 @@ struct GymTrainingForm: View {
         }
     }
     
-    private func ensureSelection() {
-        if let id = vm.selectedExerciseID,
-           filteredExercises.contains(where: { $0.id == id }) {
-            return
-        }
-        vm.selectedExerciseID = filteredExercises.first?.id
-    }
 }

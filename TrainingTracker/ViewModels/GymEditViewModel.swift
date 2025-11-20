@@ -41,17 +41,6 @@ final class GymEditViewModel: ObservableObject {
         notes = g.notes ?? ""
         usesWeight = g.exercise.usesVariableWeight
     }
-    
-    /// Actualiza usesWeight cuando cambia el ejercicio seleccionado.
-    func refreshUsesWeight(exerciseByID: (UUID) -> Exercise?) {
-        if let id = selectedExerciseID,
-           let ex = exerciseByID(id) {
-            usesWeight = ex.usesVariableWeight
-        } else {
-            // por defecto true para no bloquear el campo
-            usesWeight = true
-        }
-    }
 
     /// Valida si el entrenamiento puede guardarse.
     var canSave: Bool {
@@ -71,7 +60,7 @@ final class GymEditViewModel: ObservableObject {
         training.date = date
         training.exercise = exercise
         training.reps = reps
-        training.weightKg = parseDouble(weightText)
+        training.weightKg = parseKg(weightText, usePounds: usePounds)
         training.notes = notes.isEmpty ? nil : notes
 
         do { try context.save(); return training } catch { return nil }
@@ -86,13 +75,18 @@ final class GymEditViewModel: ObservableObject {
             return String(format: "%.1f", kg)
         }
     }
+    
+    //HELPERS
 
     /// Convierte texto del formulario a Double y convierte a kg si el usuario usa libras para guardarlo en SwiftData
-    private func parseDouble(_ text: String) -> Double? {
-        let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard t.isEmpty == false else { return nil }
-        let v = Double(t.replacingOccurrences(of: ",", with: ".")) ?? 0
-        return usePounds ? (v / 2.20462) : v
+    private func parseKg(_ text: String, usePounds: Bool) -> Double? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        guard let value = Double(trimmed.replacingOccurrences(of: ",", with: ".")) else {
+            return nil
+        }
+        // Si el usuario está en libras → convertimos a kg
+        return usePounds ? (value / 2.20462) : value
     }
 }
 
