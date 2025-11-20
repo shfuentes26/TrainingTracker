@@ -9,10 +9,6 @@ import SwiftData
 ///Formulario para crear un entrenamiento de carrera
 struct RunningTrainingForm: View {
     
-    @State private var date = Date()
-    @State private var distance = ""
-    @State private var duration = ""
-    @State private var notes = ""
     //preferencia de unidad de distancia
     @AppStorage("useMiles") private var useMiles = false
     
@@ -22,7 +18,7 @@ struct RunningTrainingForm: View {
     var body: some View {
         Form {
             Section("Running Details") {
-                DatePicker("Date", selection: $date, displayedComponents: .date)
+                DatePicker("Date", selection: $vm.date, displayedComponents: .date)
                 
                 HStack {
                     Text("Distance")

@@ -217,50 +217,121 @@ final class GoalsViewModel: ObservableObject {
     
     ///objeto summary de goals para el UI
     struct Summary {
-        let running: String?
-        let gym: String?
+        struct Running {
+            let doneKm: Double
+            let targetKm: Double
+        }
+
+        struct Gym {
+            let chestDone: Int
+            let chestTarget: Int
+            let armsDone: Int
+            let armsTarget: Int
+            let legsDone: Int
+            let legsTarget: Int
+            let coreDone: Int
+            let coreTarget: Int
+
+            var totalDone: Int {
+                chestDone + armsDone + legsDone + coreDone
+            }
+
+            var totalTarget: Int {
+                chestTarget + armsTarget + legsTarget + coreTarget
+            }
+        }
+
+        let running: Running?
+        let gym: Gym?
     }
+            
     /// metodo para devolver el resumen semanal del goal
     static func currentWeekSummary(context: ModelContext) -> Summary {
-        //let weekStart = startOfCurrentWeek()
+        let weekStart = startOfCurrentWeek()
+        let calendar = Calendar.current
+        let weekEnd = calendar.date(byAdding: .day, value: 7, to: weekStart) ?? weekStart
 
-        var runningText: String? = nil
-        var gymText: String? = nil
+        var runningSummary: Summary.Running? = nil
+        var gymSummary: Summary.Gym? = nil
 
-        // RunningGoal
+        // RUNNING: goal + distancia acumulada semana
         do {
-            var descriptor = FetchDescriptor<RunningGoal>()
-            descriptor.fetchLimit = 1
-            print("before the fetch")
-            if let goal = try context.fetch(descriptor).first {
-                let distance = formatDistance(goal.targetDistanceKm)
-                runningText = "Running: \(distance) km per week"
-                print("GoalsViewModel!! distance=\(runningText ?? "nil")")
+            // goal de la semana actual
+            let goalPredicate = #Predicate<RunningGoal> { goal in
+                goal.weekStart == weekStart && goal.isActive == true
+            }
+            var goalDescriptor = FetchDescriptor<RunningGoal>(predicate: goalPredicate)
+            goalDescriptor.fetchLimit = 1
+
+            if let goal = try context.fetch(goalDescriptor).first {
+                let targetKm = goal.targetDistanceKm
+
+                // acumulado de la semana en RunningTraining
+                let trainingsPredicate = #Predicate<RunningTraining> { run in
+                    run.date >= weekStart && run.date < weekEnd
+                }
+                let trainingsDescriptor = FetchDescriptor<RunningTraining>(predicate: trainingsPredicate)
+
+                let runs = try context.fetch(trainingsDescriptor)
+                let doneKm = runs.reduce(0.0) { $0 + $1.distanceKm }
+
+                runningSummary = .init(doneKm: doneKm, targetKm: targetKm)
             }
         } catch {
-            print("Error fetching RunningGoal summary: \(error)")
+            print("Error fetching RunningGoal / RunningTraining summary: \(error)")
         }
 
-        // GymGoal
+        // GYM: goal + numero de entrenamientos por grupo en la semana
         do {
-            var descriptor = FetchDescriptor<GymGoal>()
-            descriptor.fetchLimit = 1
+            let goalPredicate = #Predicate<GymGoal> { goal in
+                goal.weekStart == weekStart && goal.isActive == true
+            }
+            var goalDescriptor = FetchDescriptor<GymGoal>(predicate: goalPredicate)
+            goalDescriptor.fetchLimit = 1
 
-            if let goal = try context.fetch(descriptor).first {
-                func count(_ group: GymGroup) -> Int {
+            if let goal = try context.fetch(goalDescriptor).first {
+                // objetivos por grupo
+                func target(_ group: GymGroup) -> Int {
                     goal.muscleGoals.first(where: { $0.gymGroup == group })?.targetTrainings ?? 0
                 }
-                let chest = count(.chestBack)
-                let arms  = count(.arms)
-                let legs  = count(.legs)
-                let core  = count(.core)
-                //TODO: pruebas para ver el progreso en formato texto
-                gymText = "Gym: CB \(chest) · Arms \(arms) · Legs \(legs) · Core \(core)"
+                let chestTarget = target(.chestBack)
+                let armsTarget  = target(.arms)
+                let legsTarget  = target(.legs)
+                let coreTarget  = target(.core)
+
+                // acumulado de Gym de la semana
+                let trainingsPredicate = #Predicate<GymTraining> { training in
+                    training.date >= weekStart && training.date < weekEnd
+                }
+                let trainingsDescriptor = FetchDescriptor<GymTraining>(predicate: trainingsPredicate)
+                let trainings = try context.fetch(trainingsDescriptor)
+
+                var chestDone = 0
+                var armsDone  = 0
+                var legsDone  = 0
+                var coreDone  = 0
+
+                for t in trainings {
+                    let group = t.exercise.group
+                    switch group {
+                    case .chestBack: chestDone += 1
+                    case .arms:      armsDone  += 1
+                    case .legs:      legsDone  += 1
+                    case .core:      coreDone  += 1
+                    }
+                }
+
+                gymSummary = .init(
+                    chestDone: chestDone, chestTarget: chestTarget,
+                    armsDone: armsDone,   armsTarget: armsTarget,
+                    legsDone: legsDone,   legsTarget: legsTarget,
+                    coreDone: coreDone,   coreTarget: coreTarget
+                )
             }
         } catch {
-            print("Error fetching GymGoal summary: \(error)")
+            print("Error fetching GymGoal / GymTraining summary: \(error)")
         }
 
-        return Summary(running: runningText, gym: gymText)
+        return Summary(running: runningSummary, gym: gymSummary)
     }
 }
