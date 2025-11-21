@@ -6,12 +6,14 @@
 //
 
 import SwiftUI
+import Charts
 
 
 ///Vista de la home de Running
 struct RunningView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var vm = RunningTrainingViewModel()
+    @AppStorage("useMiles") private var useMiles: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -23,27 +25,53 @@ struct RunningView: View {
                         systemImage: "figure.run"
                     )
                 } else {
-                    List {
-                        Section("Past running trainings") {
-                            ForEach(vm.items) { item in
-                                NavigationLink {
-                                    // Siempre vamos al detalle de running
-                                    RunningDetailView(id: item.id)
-                                } label: {
-                                    RunningTrainingRow(item: item)
-                                        .swipeActions(edge: .trailing,
-                                                      allowsFullSwipe: true) {
-                                            Button(role: .destructive) {
-                                                vm.delete(item, in: modelContext)
-                                            } label: {
-                                                Label("Delete", systemImage: "trash")
+                    // Gráfico mensual encima de la lista
+                    if !vm.monthlyDistances.isEmpty {
+                        List {
+                            Section("Monthly distance") {
+                                Chart(vm.monthlyDistances) { entry in
+                                    let symbols = Calendar.current.shortMonthSymbols
+                                    let label = symbols.indices.contains(entry.month - 1)
+                                        ? symbols[entry.month - 1]
+                                        : "\(entry.month)"
+
+                                    // distancia en unidades configuradas en Settings
+                                    let distance = useMiles
+                                        ? entry.totalKm * 0.621371
+                                        : entry.totalKm
+
+                                    BarMark(
+                                        x: .value("Month", label),
+                                        y: .value("Distance", distance)
+                                    )
+                                }
+                                .frame(height: 200)
+                                .chartYAxisLabel {
+                                    Text("Distance (\(useMiles ? "mi" : "km"))")
+                                }
+                            }
+                            //Listado de entrenamientos
+                            Section("Past running trainings") {
+                                ForEach(vm.items) { item in
+                                    NavigationLink {
+                                        // Siempre vamos al detalle de running
+                                        RunningDetailView(id: item.id)
+                                    } label: {
+                                        RunningTrainingRow(item: item)
+                                            .swipeActions(edge: .trailing,
+                                                          allowsFullSwipe: true) {
+                                                Button(role: .destructive) {
+                                                    vm.delete(item, in: modelContext)
+                                                } label: {
+                                                    Label("Delete", systemImage: "trash")
+                                                }
                                             }
-                                        }
+                                    }
                                 }
                             }
                         }
+                        .listStyle(.insetGrouped)
                     }
-                    .listStyle(.insetGrouped)
                 }
             }
             .navigationTitle("Running")

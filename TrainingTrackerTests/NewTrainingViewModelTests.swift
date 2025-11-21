@@ -136,7 +136,7 @@ struct NewTrainingViewModelTests {
 
         vm.date = Date(timeIntervalSince1970: 0)
         vm.distanceText = "5"
-        vm.durationText = vm.applyDurationMask("04530")
+        vm.durationText = "04530"
         vm.notes = "Test run"
 
         vm.save(using: context)

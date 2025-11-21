@@ -13,6 +13,14 @@ import SwiftData
 final class RunningTrainingViewModel: ObservableObject {
     // Elementos que se muestran en la lista de Running.
     @Published var items: [HomeItem] = []
+    @Published var monthlyDistances: [MonthlyRunningDistance] = []
+    
+    //objeto para preparar data para el chart
+    struct MonthlyRunningDistance: Identifiable {
+        let id = UUID()
+        let month: Int
+        let totalKm: Double
+    }
 
     // Carga todos los entrenamientos de running desde SwiftData.
     func load(context: ModelContext) {
@@ -26,8 +34,18 @@ final class RunningTrainingViewModel: ObservableObject {
         let runs = (try? context.fetch(runDesc)) ?? []
 
         var runningItems: [HomeItem] = []
-
+        
+        var monthlyTotals = Array(repeating: 0.0, count: 12)
+        print("monthlyTotals =", monthlyTotals)
+        
         for r in runs {
+            // Acumulamos distancia mensual
+            let month = Calendar.current.component(.month, from: r.date)
+            print("Run:", r.date, "km:", r.distanceKm, "in month:", month)
+            if (1...12).contains(month) {
+                monthlyTotals[month - 1] += r.distanceKm
+            }
+            
             let distance = distanceString(r.distanceKm, useMiles: useMiles)
             let pace     = paceString(from: r, useMiles: useMiles)
 
@@ -42,10 +60,22 @@ final class RunningTrainingViewModel: ObservableObject {
                 )
             )
         }
+        
+        // Construimos el array de distancias mensuales
+        let monthly = monthlyTotals.enumerated().map { index, km in
+            MonthlyRunningDistance(month: index + 1, totalKm: km)
+        }
+        
+        monthly.forEach { m in
+            print("   Month:", m.month, "→ totalKm:", m.totalKm)
+        }
+        
+        self.monthlyDistances = monthly
 
         // Aseguramos orden por fecha descendente
         runningItems.sort { $0.date > $1.date }
         self.items = runningItems
+
     }
 
     // Elimina un entrenamiento de running y recarga la lista.
