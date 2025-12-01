@@ -12,10 +12,18 @@ import SwiftData
 @MainActor
 final class GymTrainingViewModel: ObservableObject {
 
-    // Elementos que se muestran en la lista de Gym.
     @Published var items: [HomeItem] = []
+    @Published var monthlyGymCounts: [MonthlyGymCount] = []
+    
+    //objeto para preparar data para el chart
+    struct MonthlyGymCount: Identifiable {
+        let id = UUID()
+        let month: Int
+        let group: GymGroup
+        let count: Int
+    }
 
-    // Carga todos los entrenamientos de gym desde SwiftData.
+    /// Carga todos los entrenamientos de gym desde SwiftData.
     func load(context: ModelContext) {
         // Preferencia de unidades de peso
         let usePounds = UserDefaults.standard.bool(forKey: "usePounds")
@@ -27,7 +35,9 @@ final class GymTrainingViewModel: ObservableObject {
         let gyms = (try? context.fetch(gymDesc)) ?? []
 
         var gymItems: [HomeItem] = []
+        var monthlyByGroup: [Int: [GymGroup: Int]] = [:]
 
+        //Recorremos entrenos y acumulamos por mes y grupo
         for g in gyms {
             let details: String = {
                 if let w = g.weightKg {
@@ -36,6 +46,15 @@ final class GymTrainingViewModel: ObservableObject {
                     return "\(g.exercise.name) • \(g.reps) reps"
                 }
             }()
+
+            // Acumulamos num de entrenamientos por mes y grupo
+            let month = Calendar.current.component(.month, from: g.date)
+            if (1...12).contains(month) {
+                let group = g.exercise.group  
+                var groupsDict = monthlyByGroup[month, default: [:]]
+                groupsDict[group, default: 0] += 1
+                monthlyByGroup[month] = groupsDict
+            }
 
             gymItems.append(
                 HomeItem(
@@ -49,7 +68,39 @@ final class GymTrainingViewModel: ObservableObject {
             )
         }
 
-        // Orden por fecha descendente por si acaso
+        var monthly: [MonthlyGymCount] = []
+
+        for month in 1...12 {
+            let groupsDict = monthlyByGroup[month] ?? [:]
+
+            if groupsDict.isEmpty {
+                monthly.append(
+                    MonthlyGymCount(
+                        month: month,
+                        group: .arms,
+                        count: 0
+                    )
+                )
+            } else {
+                for (group, count) in groupsDict {
+                    monthly.append(
+                        MonthlyGymCount(
+                            month: month,
+                            group: group,
+                            count: count
+                        )
+                    )
+                }
+            }
+        }
+
+        monthly.sort {
+            if $0.month != $1.month { return $0.month < $1.month }
+            return $0.group.rawValue < $1.group.rawValue
+        }
+        self.monthlyGymCounts = monthly
+
+        // Orden por fecha descendente para la lista
         gymItems.sort { $0.date > $1.date }
         self.items = gymItems
     }

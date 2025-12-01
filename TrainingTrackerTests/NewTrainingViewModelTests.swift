@@ -131,12 +131,15 @@ struct NewTrainingViewModelTests {
 
     @Test
     func saveRunningTrainingSuccessful() async throws {
+        let defaults = UserDefaults.standard
+        defaults.set(false, forKey: "useMiles")
+
         let context = try makeContext()
         let vm = NewTrainingViewModel()
 
         vm.date = Date(timeIntervalSince1970: 0)
         vm.distanceText = "5"
-        vm.durationText = "04530"
+        vm.durationText = "00:45:30"
         vm.notes = "Test run"
 
         vm.save(using: context)
@@ -162,6 +165,82 @@ struct NewTrainingViewModelTests {
         // Y debe mostrar el alert de éxito
         let alert = try #require(vm.alert)
         #expect(alert.title == "Saved")
+    }
+    
+    @Test
+    func saveGymTrainingFailsWhenRepsInvalid() async throws {
+        let context = try makeContext()
+        let exercise = insertExercise(in: context)
+
+        let vm = NewTrainingViewModel()
+        vm.date = Date(timeIntervalSince1970: 0)
+        vm.selectedExerciseID = exercise.id
+        vm.repsText = "0"        // inválido
+        vm.weightText = "40"
+
+        let saved = vm.saveGymTraining(
+            context: context,
+            exerciseByID: { id in
+                try? context
+                    .fetch(FetchDescriptor<Exercise>())
+                    .first(where: { $0.id == id })
+            }
+        )
+
+        #expect(saved == false)
+
+        let trainings = try context.fetch(FetchDescriptor<GymTraining>())
+        #expect(trainings.isEmpty)
+
+        let alert = try #require(vm.alert)
+        #expect(alert.title == "Add repetitions")
+    }
+    
+    @Test
+    func saveGymTrainingFailsWhenExerciseMissing() async throws {
+        let context = try makeContext()
+        let vm = NewTrainingViewModel()
+
+        vm.date = Date(timeIntervalSince1970: 0)
+        //sin ejercicio
+        vm.selectedExerciseID = nil
+        vm.repsText = "10"
+
+        let saved = vm.saveGymTraining(
+            context: context,
+            exerciseByID: { _ in nil }       
+        )
+
+        #expect(saved == false)
+
+        let trainings = try context.fetch(FetchDescriptor<GymTraining>())
+        #expect(trainings.isEmpty)
+
+        let alert = try #require(vm.alert)
+        #expect(alert.title == "Missing exercise")
+    }
+    
+    @Test
+    func saveRunningFailsWhenDistanceInvalid() async throws {
+        let defaults = UserDefaults.standard
+        defaults.set(false, forKey: "useMiles")
+
+        let context = try makeContext()
+        let vm = NewTrainingViewModel()
+
+        vm.date = Date(timeIntervalSince1970: 0)
+        //distancia invalida
+        vm.distanceText = "0"
+        vm.durationText = "00:45:30"
+        vm.notes = "Test run"
+
+        vm.save(using: context)
+
+        let runs = try context.fetch(FetchDescriptor<RunningTraining>())
+        #expect(runs.isEmpty)
+
+        let alert = try #require(vm.alert)
+        #expect(alert.title == "Distance required")
     }
     
     

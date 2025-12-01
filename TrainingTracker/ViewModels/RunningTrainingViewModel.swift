@@ -78,7 +78,7 @@ final class RunningTrainingViewModel: ObservableObject {
 
     }
 
-    // Elimina un entrenamiento de running y recarga la lista.
+    /// Elimina un entrenamiento de running y recarga la lista.
     func delete(_ item: HomeItem, in context: ModelContext) {
         if let model = try? context.model(for: item.id) {
             context.delete(model)
@@ -87,9 +87,7 @@ final class RunningTrainingViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Helpers copiados de HomeViewModel
-
-    // Convierte kilómetros o millas según preferencia del usuario.
+    /// Convierte kilómetros o millas según preferencia del usuario.
     private func distanceString(_ km: Double, useMiles: Bool) -> String {
         if useMiles {
             let mi = km * 0.621371
@@ -99,7 +97,7 @@ final class RunningTrainingViewModel: ObservableObject {
         }
     }
 
-    // Normaliza el string de pace del modelo (5:00 /km o 5:00 /mi)
+    /// Normaliza el string de pace del modelo (5:00 /km o 5:00 /mi)
     private func paceString(from run: RunningTraining, useMiles: Bool) -> String {
         let paceSecPerKm: Double = {
             guard run.distanceKm > 0 else { return .infinity }

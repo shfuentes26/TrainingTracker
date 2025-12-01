@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Charts
 
 ///vista de la home de Gym
 struct GymView: View {
@@ -23,6 +24,35 @@ struct GymView: View {
                     )
                 } else {
                     List {
+                        // Gráfico mensual
+                        if !vm.monthlyGymCounts.isEmpty {
+                            Section("Monthly gym trainings") {
+                                Chart(vm.monthlyGymCounts) { entry in
+                                    let symbols = Calendar.current.shortMonthSymbols
+                                    let label = symbols.indices.contains(entry.month - 1)
+                                        ? symbols[entry.month - 1]
+                                        : "\(entry.month)"
+                                    
+                                    BarMark(
+                                        x: .value("Month", label),
+                                        y: .value("Sessions", entry.count)
+                                    )
+                                    .foregroundStyle(
+                                        by: .value(
+                                            "Group",
+                                            String(describing: entry.group)
+                                        )
+                                    )
+                                }
+                                .frame(height: 200)
+                                .chartYAxisLabel {
+                                    Text("Sessions")
+                                }
+                                .chartLegend(position: .bottom)
+                            }
+                        }
+                        
+                        // Listado de entrenamientos
                         Section("Past gym trainings") {
                             ForEach(vm.items) { item in
                                 NavigationLink {

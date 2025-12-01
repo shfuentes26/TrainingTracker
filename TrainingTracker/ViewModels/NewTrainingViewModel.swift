@@ -118,7 +118,7 @@ final class NewTrainingViewModel: ObservableObject {
     func saveGymTraining(context: ModelContext, exerciseByID: (UUID) -> Exercise?) -> Bool {
         // ejercicio
         guard let exerciseID = selectedExerciseID,
-            let exercise = allExercises.first(where: { $0.id == exerciseID }) else {
+              let exercise = exerciseByID(exerciseID) else {
             alert = (title: "Missing exercise",
                 message: "Please select an exercise.")
             return false
@@ -172,7 +172,6 @@ final class NewTrainingViewModel: ObservableObject {
     }
     
 
-    // HELPER 
     /// Convierte texto del formulario a Double y convierte a kg si el usuario usa libras para guardarlo en SwiftData
     private func parseKg(_ text: String, usePounds: Bool) -> Double? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
