@@ -32,8 +32,15 @@ struct NewTrainingViewModelTests {
         return exercise
     }
     
+    private func resetUnitsDefaults() {
+        let defaults = UserDefaults.standard
+        defaults.set(false, forKey: "usePounds")
+        defaults.set(false, forKey: "useMiles")
+    }
+    
     @Test
     func canSaveGym() async throws {
+        resetUnitsDefaults()
         let vm = NewTrainingViewModel()
         
         vm.repsText = ""
@@ -55,6 +62,7 @@ struct NewTrainingViewModelTests {
     
     @Test
     func saveGymTrainingSuccessful() async throws {
+        resetUnitsDefaults()
         let context = try makeContext()
         let exercise = insertExercise(in: context)
         
