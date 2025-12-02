@@ -60,7 +60,7 @@ struct GymTrainingForm: View {
                 HStack {
                     Text("Weight")
                     Spacer()
-                    TextField(usePounds ? "lb" : "kg", text: $vm.weightText)
+                    TextField("0", text: $vm.weightText)
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 100)
