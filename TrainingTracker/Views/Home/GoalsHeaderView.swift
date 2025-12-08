@@ -115,7 +115,7 @@ struct GoalsHeaderView: View {
                     bottomText: String
                         ) -> some View {
 
-        let safeProgress = max(0, min(progress, 1))
+        let saveProgress = max(0, min(progress, 1))
 
         return VStack(spacing: 8) {
             VStack {
@@ -123,7 +123,7 @@ struct GoalsHeaderView: View {
                     Chart {
                         // parte completada en verde
                         SectorMark(
-                            angle: .value("Progress", safeProgress),
+                            angle: .value("Progress", saveProgress),
                             innerRadius: .ratio(0.8),
                             outerRadius: .ratio(1.0)
                         )
@@ -131,7 +131,7 @@ struct GoalsHeaderView: View {
 
                         // parte pendiente en rojo suave
                         SectorMark(
-                            angle: .value("Remaining", 1 - safeProgress),
+                            angle: .value("Remaining", 1 - saveProgress),
                             innerRadius: .ratio(0.8),
                             outerRadius: .ratio(1.0)
                         )
