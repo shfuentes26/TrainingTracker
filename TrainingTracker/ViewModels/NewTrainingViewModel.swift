@@ -13,7 +13,12 @@ import SwiftUI
 /// ViewModel responsable de gestionar losl formularios de creacion de un entrenamiento de running y de gym
 @MainActor
 final class NewTrainingViewModel: ObservableObject {
-
+    private let healthManager: HealthKitManager
+    
+    init(healthManager: HealthKitManager = .shared) {
+        self.healthManager = healthManager
+    }
+        
 
     @Published var date: Date = .now
     @Published var distanceText: String = ""
@@ -68,6 +73,14 @@ final class NewTrainingViewModel: ObservableObject {
         context.insert(obj)
         do {
             try context.save()
+            //guardamos el entrenamiento tambien en Apple Health
+            Task {
+                do {
+                    try await self.healthManager.saveRunningWorkout(from: obj)
+                } catch {
+                    print("Error saving workout to HealthKit: \(error)")
+                }
+            }
             reset()
             alert = ("Saved", "Training saved successfully.")
         } catch {

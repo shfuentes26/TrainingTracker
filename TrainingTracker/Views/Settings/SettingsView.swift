@@ -10,13 +10,33 @@ import SwiftUI
 ///vista de la home de Settings
 struct SettingsView: View {
     @StateObject private var vm = SettingsViewModel()
+    @Environment(\.modelContext) private var modelContext
+    @State private var isImporting = false
+    @State private var showImportResult = false
+    @State private var importedCount: Int = 0
+
 
         var body: some View {
             List {
                 Section ("Settings") {
-                    Button("Import from Apple Health") {
-                        // TODO: como metemos los entrenamientos de Health??
+                    Button {
+                        Task {
+                            isImporting = true
+                            let count = await vm.importFromHealth(context: modelContext)
+                            importedCount = count
+                            isImporting = false
+                            showImportResult = true
+                        }
+                    } label: {
+                        HStack {
+                            Text("Import from Apple Health")
+                            Spacer()
+                            if isImporting {
+                                ProgressView()
+                            }
+                        }
                     }
+                    .disabled(isImporting)
                     NavigationLink("Manage exercises") {
                         ExercisesListView()
                     }
@@ -45,5 +65,17 @@ struct SettingsView: View {
             .listStyle(.insetGrouped)
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
+            .alert(
+                "Import completed",
+                isPresented: $showImportResult
+            ) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                if importedCount > 0 {
+                    Text("Imported \(importedCount) running workouts from Apple Health.")
+                } else {
+                    Text("No new running workouts found to import.")
+                }
+            }
         }
     }
