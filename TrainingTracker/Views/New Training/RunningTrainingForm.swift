@@ -14,6 +14,14 @@ struct RunningTrainingForm: View {
     
     @Environment(\.modelContext) private var modelContext
     @StateObject private var vm = NewTrainingViewModel()
+    //control del foco del teclado
+    @FocusState private var focusedField: Field?
+    
+    private enum Field: Hashable {
+        case distance
+        case duration
+        case notes
+    }
     
     var body: some View {
         Form {
@@ -27,7 +35,8 @@ struct RunningTrainingForm: View {
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 80)
-                    Text(useMiles ? "mi" : "km")         
+                        .focused($focusedField, equals: .distance)
+                    Text(useMiles ? "mi" : "km")
                                 .foregroundStyle(.secondary)
                 }
                 
@@ -38,11 +47,13 @@ struct RunningTrainingForm: View {
                         .keyboardType(.numbersAndPunctuation)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 90)
+                        .focused($focusedField, equals: .duration)
                 }
             }
             Section("Notes") {
                 TextField("Optional notes…", text: $vm.notes, axis: .vertical)
                     .lineLimit(3, reservesSpace: true)
+                    .focused($focusedField, equals: .notes)
             }
             Section {
                 Button(action: { vm.save(using: modelContext) }) {   
@@ -55,6 +66,15 @@ struct RunningTrainingForm: View {
                 .listRowBackground(Color.clear)
             }
         }
+        // cerrar teclado al hacer scroll
+        .scrollDismissesKeyboard(.interactively)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { focusedField = nil }
+            }
+        }
+        
         .alert(vm.alert?.title ?? "",
                isPresented: Binding(get: { vm.alert != nil }, set: { if !$0 { vm.alert = nil } })) {
             Button("OK", role: .cancel) {}

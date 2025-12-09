@@ -23,6 +23,15 @@ struct GymTrainingForm: View {
     //preferencia de unidad de peso
     @AppStorage("usePounds") private var usePounds = false
     
+    // control del foco del teclado
+    @FocusState private var focusedField: Field?
+
+    private enum Field: Hashable {
+        case reps
+        case weight
+        case notes
+    }
+    
     var body: some View {
         Form {
             Section("Gym Details") {
@@ -56,6 +65,7 @@ struct GymTrainingForm: View {
                         .keyboardType(.numberPad)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 80)
+                        .focused($focusedField, equals: .reps)
                 }
                 HStack {
                     Text("Weight")
@@ -64,6 +74,7 @@ struct GymTrainingForm: View {
                         .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 100)
+                        .focused($focusedField, equals: .weight)
                     Text(usePounds ? "lb" : "kg")
                             .foregroundStyle(.secondary)
                 }
@@ -71,6 +82,7 @@ struct GymTrainingForm: View {
             Section("Notes") {
                 TextField("Optional notes…", text: $vm.notes, axis: .vertical)
                     .lineLimit(3, reservesSpace: true)
+                    .focused($focusedField, equals: .notes)
             }
             Section {
                 Button {
@@ -88,6 +100,7 @@ struct GymTrainingForm: View {
                         showAlert = true
                         vm.alert = nil
                     }
+                    focusedField = nil
                 } label: {
                     Text("Save")
                         .font(.headline)
@@ -98,6 +111,15 @@ struct GymTrainingForm: View {
                 .listRowBackground(Color.clear)
             }
             
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    focusedField = nil
+                }
+            }
         }
         .onAppear {
             print("category=\(vm.category)")
