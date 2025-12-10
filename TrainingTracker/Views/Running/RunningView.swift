@@ -25,58 +25,110 @@ struct RunningView: View {
                         systemImage: "figure.run"
                     )
                 } else {
-                    // Gráfico mensual encima de la lista
-                    if !vm.monthlyDistances.isEmpty {
-                        List {
-                            Section("Monthly distance") {
-                                Chart(vm.monthlyDistances) { entry in
-                                    let symbols = Calendar.current.shortMonthSymbols
-                                    let label = symbols.indices.contains(entry.month - 1)
-                                        ? symbols[entry.month - 1]
-                                        : "\(entry.month)"
-
-                                    // distancia en unidades configuradas en Settings
-                                    let distance = useMiles
-                                        ? entry.totalKm * 0.621371
-                                        : entry.totalKm
-
-                                    BarMark(
-                                        x: .value("Month", label),
-                                        y: .value("Distance", distance)
-                                    )
-                                }
-                                .frame(height: 200)
-                                .chartYAxisLabel {
-                                    Text("Distance (\(useMiles ? "mi" : "km"))")
-                                }
-                            }
-                            //Listado de entrenamientos
-                            Section("Past running trainings") {
-                                ForEach(vm.items) { item in
-                                    NavigationLink {
-                                        // Siempre vamos al detalle de running
-                                        RunningDetailView(id: item.id)
-                                    } label: {
-                                        RunningTrainingRow(item: item)
-                                            .swipeActions(edge: .trailing,
-                                                          allowsFullSwipe: true) {
-                                                Button(role: .destructive) {
-                                                    vm.delete(item, in: modelContext)
-                                                } label: {
-                                                    Label("Delete", systemImage: "trash")
-                                                }
-                                            }
+                    List {
+                        // Graafico
+                        if !vm.availableYears.isEmpty {
+                            Section {
+                                YearlyMonthlyDistancePager(
+                                    years: vm.availableYears,
+                                    selectedYear: $vm.selectedYear,
+                                    useMiles: useMiles,
+                                    distancesProvider: { year in
+                                        vm.monthlyDistances(for: year)
                                     }
+                                )
+                                .frame(height: 230)
+                                .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                            } header: {
+                                HStack {
+                                    Text("Monthly distance")
+                                    Spacer()
+                                    Text(verbatim: "\(vm.selectedYear)")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.primary.opacity(0.75))
                                 }
                             }
                         }
-                        .listStyle(.insetGrouped)
+
+                        // Lista de runnings
+                        Section("Past running trainings") {
+                            ForEach(vm.items) { item in
+                                NavigationLink {
+                                    // vamos al detalle de running
+                                    RunningDetailView(id: item.id)
+                                } label: {
+                                    RunningTrainingRow(item: item)
+                                        .swipeActions(edge: .trailing,
+                                                      allowsFullSwipe: true) {
+                                            Button(role: .destructive) {
+                                                vm.delete(item, in: modelContext)
+                                            } label: {
+                                                Label("Delete", systemImage: "trash")
+                                            }
+                                        }
+                                }
+                            }
+                        }
                     }
+                    .listStyle(.insetGrouped)
                 }
             }
             .navigationTitle("Running")
             .onAppear { vm.load(context: modelContext) }
         }
+    }
+}
+
+/// Pager con swipe entre años para mostrar el chart mensual
+private struct YearlyMonthlyDistancePager: View {
+    let years: [Int]
+    @Binding var selectedYear: Int
+    let useMiles: Bool
+    let distancesProvider: (Int) -> [RunningTrainingViewModel.MonthlyRunningDistance]
+
+    var body: some View {
+        TabView(selection: $selectedYear) {
+            ForEach(years, id: \.self) { year in
+                YearlyMonthlyDistanceChart(
+                    year: year,
+                    distances: distancesProvider(year),
+                    useMiles: useMiles
+                )
+                .tag(year)
+                .padding(.horizontal, 4)
+            }
+        }
+        .tabViewStyle(.page(indexDisplayMode: .never))
+    }
+}
+
+/// Chart mensual para un año concreto
+private struct YearlyMonthlyDistanceChart: View {
+    let year: Int
+    let distances: [RunningTrainingViewModel.MonthlyRunningDistance]
+    let useMiles: Bool
+
+    var body: some View {
+        Chart(distances) { entry in
+            let symbols = Calendar.current.shortMonthSymbols
+            let label = symbols.indices.contains(entry.month - 1)
+            ? symbols[entry.month - 1]
+            : "\(entry.month)"
+
+            let distance = useMiles
+            ? entry.totalKm * 0.621371
+            : entry.totalKm
+
+            BarMark(
+                x: .value("Month", label),
+                y: .value("Distance", distance)
+            )
+        }
+        .frame(height: 200)
+        .chartYAxisLabel {
+            Text("Distance (\(useMiles ? "mi" : "km"))")
+        }
+        .accessibilityLabel("Monthly distance chart for \(year)")
     }
 }
 
