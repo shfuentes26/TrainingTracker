@@ -13,7 +13,12 @@ import SwiftData
 final class GymTrainingViewModel: ObservableObject {
 
     @Published var items: [HomeItem] = []
-    @Published var monthlyGymCounts: [MonthlyGymCount] = []
+    //@Published var monthlyGymCounts: [MonthlyGymCount] = []
+    // Control de años del gráfico
+    @Published var selectedYear: Int
+    @Published var availableYears: [Int] = []
+    
+    private var allGyms: [GymTraining] = []
     
     //objeto para preparar data para el chart
     struct MonthlyGymCount: Identifiable {
@@ -21,6 +26,10 @@ final class GymTrainingViewModel: ObservableObject {
         let month: Int
         let group: GymGroup
         let count: Int
+    }
+    
+    init() {
+        self.selectedYear = Calendar.current.component(.year, from: Date())
     }
 
     /// Carga todos los entrenamientos de gym desde SwiftData.
@@ -33,11 +42,10 @@ final class GymTrainingViewModel: ObservableObject {
             sortBy: [SortDescriptor(\.date, order: .reverse)]
         )
         let gyms = (try? context.fetch(gymDesc)) ?? []
+        self.allGyms = gyms
 
         var gymItems: [HomeItem] = []
-        var monthlyByGroup: [Int: [GymGroup: Int]] = [:]
 
-        //Recorremos entrenos y acumulamos por mes y grupo
         for g in gyms {
             let details: String = {
                 if let w = g.weightKg {
@@ -46,15 +54,6 @@ final class GymTrainingViewModel: ObservableObject {
                     return "\(g.exercise.name) • \(g.reps) reps"
                 }
             }()
-
-            // Acumulamos num de entrenamientos por mes y grupo
-            let month = Calendar.current.component(.month, from: g.date)
-            if (1...12).contains(month) {
-                let group = g.exercise.group  
-                var groupsDict = monthlyByGroup[month, default: [:]]
-                groupsDict[group, default: 0] += 1
-                monthlyByGroup[month] = groupsDict
-            }
 
             gymItems.append(
                 HomeItem(
@@ -68,12 +67,45 @@ final class GymTrainingViewModel: ObservableObject {
             )
         }
 
+        gymItems.sort { $0.date > $1.date }
+        self.items = gymItems
+
+        // Años disponibles para el gráfico
+        let currentYear = Calendar.current.component(.year, from: Date())
+        var years = Set(gyms.map { Calendar.current.component(.year, from: $0.date) })
+        years.insert(currentYear)
+
+        self.availableYears = years.sorted()
+
+        if !availableYears.contains(selectedYear) {
+            selectedYear = currentYear
+        }
+    }
+    
+    /// Devuelve los conteos mensuales por grupo filtrados por año.
+    func monthlyGymCounts(for year: Int) -> [MonthlyGymCount] {
+        var monthlyByGroup: [Int: [GymGroup: Int]] = [:]
+
+        for g in allGyms {
+            let gYear = Calendar.current.component(.year, from: g.date)
+            guard gYear == year else { continue }
+
+            let month = Calendar.current.component(.month, from: g.date)
+            if (1...12).contains(month) {
+                let group = g.exercise.group
+                var groupsDict = monthlyByGroup[month, default: [:]]
+                groupsDict[group, default: 0] += 1
+                monthlyByGroup[month] = groupsDict
+            }
+        }
+
         var monthly: [MonthlyGymCount] = []
 
         for month in 1...12 {
             let groupsDict = monthlyByGroup[month] ?? [:]
 
             if groupsDict.isEmpty {
+                // dummy entry para mantener meses visibles sin datos
                 monthly.append(
                     MonthlyGymCount(
                         month: month,
@@ -98,11 +130,8 @@ final class GymTrainingViewModel: ObservableObject {
             if $0.month != $1.month { return $0.month < $1.month }
             return $0.group.rawValue < $1.group.rawValue
         }
-        self.monthlyGymCounts = monthly
 
-        // Orden por fecha descendente para la lista
-        gymItems.sort { $0.date > $1.date }
-        self.items = gymItems
+        return monthly
     }
 
     /// Elimina un entrenamiento de gym y recarga la lista.
