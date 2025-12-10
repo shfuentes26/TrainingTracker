@@ -22,6 +22,7 @@ struct RunningTrainingViewModelTests {
         return ModelContext(container)
     }
 
+    ///verifica el comportamiento del ViewModel cuando no existen entrenamientos
     @Test
     func loadWithNoTrainingsProducesEmptyListAndZeroDistances() async throws {
         let context = try makeContext()
@@ -42,6 +43,7 @@ struct RunningTrainingViewModelTests {
         #expect(distances.map(\.month) == Array(1...12))
     }
 
+    ///Verifica que load(context:) agrega correctamente las distancias mensuales.
     @Test
     func loadAggregatesMonthlyDistancesCorrectly() async throws {
         let context = try makeContext()
@@ -75,6 +77,7 @@ struct RunningTrainingViewModelTests {
                 
     }
 
+    ///Verifica que load(context:) construye items correctamente para la lista de runnings
     @Test
     func loadBuildsItemsSortedByDateAndFormatsSubtitle() async throws {
         let context = try makeContext()

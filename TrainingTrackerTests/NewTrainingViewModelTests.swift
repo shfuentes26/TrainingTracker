@@ -10,12 +10,11 @@ import SwiftData
 import Foundation
 @testable import TrainingTracker
 
-
+/// Unit tests para NewTrainingViewModel
 @MainActor
 struct NewTrainingViewModelTests {
     
-    
-    //Test de GYM
+    /// Crea un ModelContext en memoria
     private func makeContext() throws -> ModelContext {
         //Usamos el contenedor en memoria para evitar conflictos con datos ya almacenados en SwiftData
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
@@ -25,19 +24,20 @@ struct NewTrainingViewModelTests {
         )
         return ModelContext(container)
     }
-    
+    /// Inserta un ejercicio de ejemplo en el contexto de test
     private func insertExercise(in context: ModelContext) -> Exercise {
         let exercise = Exercise(name: "Bench Press", group: .chestBack)
         context.insert(exercise)
         return exercise
     }
-    
+    /// Resetea los flags de unidades en UserDefaults
     private func resetUnitsDefaults() {
         let defaults = UserDefaults.standard
         defaults.set(false, forKey: "usePounds")
         defaults.set(false, forKey: "useMiles")
     }
     
+    ////// Valida la lógica de canSaveGym (repeticiones  y ejercicios validos y vacíos)
     @Test
     func canSaveGym() async throws {
         resetUnitsDefaults()
@@ -60,6 +60,7 @@ struct NewTrainingViewModelTests {
         #expect(vm.canSaveGym == true)
     }
     
+    /// Verifica que saveGymTraining(...) guarda correctamente un entrenamiento cuando los datos son válidos
     @Test
     func saveGymTrainingSuccessful() async throws {
         resetUnitsDefaults()
@@ -95,6 +96,7 @@ struct NewTrainingViewModelTests {
         #expect(training.notes == "Test gym")
     }
     
+    /// Comprueba que resetForm() limpia el estado del formulario de Gym.
     @Test
     func resetForm() async throws {
         let vm = NewTrainingViewModel()
@@ -114,6 +116,7 @@ struct NewTrainingViewModelTests {
     }
     
     //RUNNING tests
+    ///Valida la lógica de canSaveGym con datos validos y con datos vacios (invalidos)
     @Test
     func canSaveRunning() async throws {
         let vm = NewTrainingViewModel()
@@ -137,6 +140,7 @@ struct NewTrainingViewModelTests {
         #expect(vm.canSaveRunning == true)
     }
 
+    ///Verifica que saveGymTraining() guarda correctamente un entrenamiento de gimnasio cuando los datos son válidos.
     @Test
     func saveRunningTrainingSuccessful() async throws {
         let defaults = UserDefaults.standard
@@ -174,7 +178,7 @@ struct NewTrainingViewModelTests {
         let alert = try #require(vm.alert)
         #expect(alert.title == "Saved")
     }
-    
+    /// Verifica que el guardado de Gym falla cuando las repeticiones son inválidas.
     @Test
     func saveGymTrainingFailsWhenRepsInvalid() async throws {
         let context = try makeContext()
@@ -204,6 +208,7 @@ struct NewTrainingViewModelTests {
         #expect(alert.title == "Add repetitions")
     }
     
+    /// Verifica que el guardado de Gym falla cuando falta el ejercicio.
     @Test
     func saveGymTrainingFailsWhenExerciseMissing() async throws {
         let context = try makeContext()
@@ -228,6 +233,7 @@ struct NewTrainingViewModelTests {
         #expect(alert.title == "Missing exercise")
     }
     
+    ////// Verifica que el guardado de un entrenamiento de running falla cuando la distancia introducida es inválida
     @Test
     func saveRunningFailsWhenDistanceInvalid() async throws {
         let defaults = UserDefaults.standard

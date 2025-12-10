@@ -10,9 +10,10 @@ import SwiftData
 import Foundation
 @testable import TrainingTracker
 
-
+/// Unit tests para GymTrainingViewModel
 @MainActor
 struct GymTrainingViewModelTests {
+    /// Crea un ModelContext en memoria
     private func makeContext() throws -> ModelContext {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(
@@ -21,13 +22,14 @@ struct GymTrainingViewModelTests {
         )
         return ModelContext(container)
     }
-
+    /// Helper para crear e insertar ejercicios de forma consistente en los test
     private func makeExercise(name: String, group: GymGroup, in context: ModelContext) -> Exercise {
         let ex = Exercise(name: name, group: group)
         context.insert(ex)
         return ex
     }
 
+    ///valida la lógica base del “estado vacío” del histórico y el chart
     @Test
     func loadWithNoTrainingsProducesEmptyListAndZeroCounts() async throws {
         let context = try makeContext()
@@ -46,6 +48,7 @@ struct GymTrainingViewModelTests {
         #expect(counts.map(\.month) == Array(1...12))
     }
 
+    ///test para contar sesiones por grupo usado para el grafico.
     @Test
     func loadAggregatesCountsByMonthAndGroup() async throws {
         let context = try makeContext()
@@ -93,6 +96,7 @@ struct GymTrainingViewModelTests {
         #expect(januaryCore.count == 1)
     }
 
+    /// test para validar lista de items de gym en el listado
     @Test
     func loadBuildsItemsSortedByDateAndFormatsSubtitle() async throws {
         let context = try makeContext()
@@ -121,6 +125,7 @@ struct GymTrainingViewModelTests {
         #expect(first.subtitle == "Bench Press • 12 reps @ 40.0 kg")
     }
 
+    ///Verifica que delete elimina correctamente un entrenamiento de gimnasio
     @Test
     func deleteRemovesTrainingAndReloadsItems() async throws {
         let context = try makeContext()

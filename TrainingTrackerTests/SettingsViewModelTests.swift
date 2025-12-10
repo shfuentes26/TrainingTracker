@@ -13,6 +13,7 @@ import Foundation
 @MainActor
 struct SettingsViewModelTests {
 
+    /// Verifica los valores por defecto del SettingsViewModel cuando no existen preferencias previas guardadas en UserDefaults
     @Test
     func defaultValuesAreKgAndKm() async throws {
         let defaults = UserDefaults.standard
@@ -27,7 +28,7 @@ struct SettingsViewModelTests {
         #expect(vm.weightUnitLabel == "kg")
         #expect(vm.distanceUnitLabel == "km")
     }
-
+    /// Verifica que cambiar los toggles de unidades en el ViewModel se actualiza el estado interno del VM y persiste correctamente en UserDefaults
     @Test
     func togglingUnitsDefaults() async throws {
         let defaults = UserDefaults.standard
