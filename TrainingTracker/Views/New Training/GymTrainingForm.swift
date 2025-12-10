@@ -52,7 +52,7 @@ struct GymTrainingForm: View {
                     vm.filteredExercises.map { ($0.id, $0.name, $0.usesVariableWeight) }
 
                     Picker("Exercise", selection: $vm.selectedExerciseID) {
-                        Text("Select an exercise").tag(nil as UUID?)
+                        Text("Select exercise").tag(nil as UUID?)
                         ForEach(items, id: \.0) { pair in
                             Text(pair.1).tag(pair.0 as UUID?)
                         }
