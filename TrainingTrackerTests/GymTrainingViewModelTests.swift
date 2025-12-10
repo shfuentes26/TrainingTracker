@@ -39,10 +39,11 @@ struct GymTrainingViewModelTests {
 
         #expect(vm.items.isEmpty)
 
-        // 12 meses, cada uno con un count 0
-        #expect(vm.monthlyGymCounts.count == 12)
-        #expect(vm.monthlyGymCounts.allSatisfy { $0.count == 0 })
-        #expect(vm.monthlyGymCounts.map(\.month) == Array(1...12))
+        let counts = vm.monthlyGymCounts(for: vm.selectedYear)
+
+        #expect(counts.count == 12)
+        #expect(counts.allSatisfy { $0.count == 0 })
+        #expect(counts.map(\.month) == Array(1...12))
     }
 
     @Test
@@ -72,18 +73,19 @@ struct GymTrainingViewModelTests {
 
         vm.load(context: context)
 
-        // Debe haber 12 meses (algunos con 0)
-        #expect(vm.monthlyGymCounts.map(\.month).contains(11))
-        #expect(vm.monthlyGymCounts.map(\.month).contains(1))
+        let counts = vm.monthlyGymCounts(for: 2025)
+
+        #expect(counts.map(\.month).contains(11))
+        #expect(counts.map(\.month).contains(1))
 
         let novemberArms = try #require(
-            vm.monthlyGymCounts.first(where: { $0.month == 11 && $0.group == .arms })
+            counts.first(where: { $0.month == 11 && $0.group == .arms })
         )
         let novemberCore = try #require(
-            vm.monthlyGymCounts.first(where: { $0.month == 11 && $0.group == .core })
+            counts.first(where: { $0.month == 11 && $0.group == .core })
         )
         let januaryCore = try #require(
-            vm.monthlyGymCounts.first(where: { $0.month == 1 && $0.group == .core })
+            counts.first(where: { $0.month == 1 && $0.group == .core })
         )
 
         #expect(novemberArms.count == 1)

@@ -35,9 +35,11 @@ struct RunningTrainingViewModelTests {
         #expect(vm.items.isEmpty)
 
         // 12 meses con distancia 0
-        #expect(vm.monthlyDistances.count == 12)
-        #expect(vm.monthlyDistances.allSatisfy { $0.totalKm == 0 })
-        #expect(vm.monthlyDistances.map(\.month) == Array(1...12))
+        let distances = vm.monthlyDistances(for: vm.selectedYear)
+
+        #expect(distances.count == 12)
+        #expect(distances.allSatisfy { $0.totalKm == 0 })
+        #expect(distances.map(\.month) == Array(1...12))
     }
 
     @Test
@@ -61,14 +63,16 @@ struct RunningTrainingViewModelTests {
 
         vm.load(context: context)
 
-        // 12 meses esperados
-        #expect(vm.monthlyDistances.count == 12)
+        let distances = vm.monthlyDistances(for: 2025)
+        
+        #expect(distances.count == 12)
 
-        let january = try #require(vm.monthlyDistances.first(where: { $0.month == 1 }))
-        let november = try #require(vm.monthlyDistances.first(where: { $0.month == 11 }))
+        let january = try #require(distances.first(where: { $0.month == 1 }))
+        let november = try #require(distances.first(where: { $0.month == 11 }))
 
         #expect(january.totalKm == 10)
-        #expect(november.totalKm == 8)  
+        #expect(november.totalKm == 8)
+                
     }
 
     @Test
