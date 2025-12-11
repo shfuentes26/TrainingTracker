@@ -13,7 +13,7 @@ import Charts
 struct GoalsHeaderView: View {
 
     @Environment(\.modelContext) private var modelContext
-    @StateObject private var vm = GoalsViewModel()
+    @ObservedObject var vm: GoalsViewModel
 
     var body: some View {
         NavigationLink {

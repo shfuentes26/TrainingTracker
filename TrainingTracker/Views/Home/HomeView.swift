@@ -13,12 +13,13 @@ struct HomeView: View {
     
     @Environment(\.modelContext) private var modelContext
     @StateObject private var vm = HomeViewModel()
+    @StateObject private var goalsVM = GoalsViewModel()
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
                 //Goals
-                GoalsHeaderView()
+                GoalsHeaderView(vm: goalsVM)
                 // Entrenamientos
                 Group {
                     if vm.items.isEmpty {
@@ -39,6 +40,7 @@ struct HomeView: View {
                                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                                 Button(role: .destructive) {
                                                     vm.delete(item, in: modelContext)
+                                                    goalsVM.reloadSummary(context: modelContext)
                                                 } label: {
                                                     Label("Delete", systemImage: "trash")
                                                 }
