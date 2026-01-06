@@ -14,13 +14,13 @@ struct MainTabView: View {
                 HomeView()
                     .navigationTitle("Inicio")
             }
-            .tabItem { Label("Home", systemImage: "house.fill") }
+            .tabItem { Label("tab.home", systemImage: "house.fill") }
         
             NavigationStack {
                 GymView()
                     .navigationTitle("Gym")
             }
-            .tabItem { Label("Gym", systemImage: "dumbbell.fill") }
+            .tabItem { Label("tab.gym", systemImage: "dumbbell.fill") }
             NavigationStack {
                 NewTrainingView()
                     .navigationTitle("New Training")
@@ -31,13 +31,13 @@ struct MainTabView: View {
                 RunningView()
                     .navigationTitle("Running")
             }
-            .tabItem { Label("Running", systemImage: "figure.run") }
+            .tabItem { Label("tab.running", systemImage: "figure.run") }
 
             NavigationStack {
                 SettingsView()
                     .navigationTitle("Settings")
             }
-            .tabItem { Label("Settings", systemImage: "gearshape.fill") }
+            .tabItem { Label("tab.settings", systemImage: "gearshape.fill") }
         }
     }
 }

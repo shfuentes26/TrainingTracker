@@ -32,7 +32,7 @@ struct RunningTrainingForm: View {
                     Text("Distance")
                     Spacer()
                     TextField("0", text: $vm.distanceText)
-                        .keyboardType(.numberPad)
+                        .keyboardType(.decimalPad)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 80)
                         .focused($focusedField, equals: .distance)
