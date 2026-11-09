@@ -14,6 +14,7 @@ struct RunningView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var vm = RunningTrainingViewModel()
     @AppStorage("useMiles") private var useMiles: Bool = false
+    @State private var minimumDistanceKm: Double = 0
 
     var body: some View {
         NavigationStack {
@@ -52,7 +53,7 @@ struct RunningView: View {
 
                         // Lista de runnings
                         Section("Past running trainings") {
-                            ForEach(vm.items) { item in
+                            ForEach(vm.filteredItems(minimumKm: minimumDistanceKm)) { item in
                                 NavigationLink {
                                     // vamos al detalle de running
                                     RunningDetailView(id: item.id)
@@ -68,12 +69,33 @@ struct RunningView: View {
                                         }
                                 }
                             }
+                            if vm.filteredItems(minimumKm: minimumDistanceKm).isEmpty {
+                                Text("No running trainings match this filter")
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
                     .listStyle(.insetGrouped)
                 }
             }
             .navigationTitle("Running")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Picker("Distance filter", selection: $minimumDistanceKm) {
+                            Text("All").tag(0.0)
+                            Text(">3 km").tag(3.0)
+                            Text(">5 km").tag(5.0)
+                            Text(">10 km").tag(10.0)
+                        }
+                    } label: {
+                        Image(systemName: minimumDistanceKm == 0
+                              ? "line.3.horizontal.decrease.circle"
+                              : "line.3.horizontal.decrease.circle.fill")
+                    }
+                    .accessibilityLabel("Filter running trainings")
+                }
+            }
             .onAppear { vm.load(context: modelContext) }
         }
     }

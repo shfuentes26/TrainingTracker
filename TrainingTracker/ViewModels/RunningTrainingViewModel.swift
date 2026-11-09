@@ -79,6 +79,13 @@ final class RunningTrainingViewModel: ObservableObject {
         }
     }
     
+    /// Filtra el historial por distancia real en kilómetros.
+    func filteredItems(minimumKm: Double) -> [HomeItem] {
+        guard minimumKm > 0 else { return items }
+        let matchingIDs = Set(allRuns.filter { $0.distanceKm > minimumKm }.map(\.persistentModelID))
+        return items.filter { matchingIDs.contains($0.id) }
+    }
+
     /// Distancias mensuales para un año concreto (filtra por año).
     func monthlyDistances(for year: Int) -> [MonthlyRunningDistance] {
         var monthlyTotals = Array(repeating: 0.0, count: 12)

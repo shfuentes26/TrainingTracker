@@ -17,6 +17,15 @@
     "%lld reps" : {
 
     },
+    ">3 km" : {
+
+    },
+    ">5 km" : {
+
+    },
+    ">10 km" : {
+
+    },
     "0" : {
 
     },
@@ -35,6 +44,9 @@
           }
         }
       }
+    },
+    "All" : {
+
     },
     "Cancel" : {
       "localizations" : {
@@ -125,6 +137,9 @@
           }
         }
       }
+    },
+    "Distance filter" : {
+
     },
     "Distance:" : {
       "localizations" : {
@@ -235,6 +250,9 @@
           }
         }
       }
+    },
+    "Filter running trainings" : {
+
     },
     "Goal type" : {
       "localizations" : {
@@ -801,6 +819,9 @@
           }
         }
       }
+    },
+    "No running trainings match this filter" : {
+
     },
     "Notes" : {
       "localizations" : {
