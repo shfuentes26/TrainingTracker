@@ -107,27 +107,39 @@ private struct YearlyMonthlyDistanceChart: View {
     let year: Int
     let distances: [RunningTrainingViewModel.MonthlyRunningDistance]
     let useMiles: Bool
+    
+    private var yearlyTotal: Double {
+        let totalKm = distances.reduce(0) { $0 + $1.totalKm }
+        return useMiles ? totalKm * 0.621371 : totalKm
+    }
 
     var body: some View {
-        Chart(distances) { entry in
-            let symbols = Calendar.current.shortMonthSymbols
-            let label = symbols.indices.contains(entry.month - 1)
-            ? symbols[entry.month - 1]
-            : "\(entry.month)"
+        VStack(spacing: 4) {
+            HStack {
+                Text("Distance (\(useMiles ? "mi" : "km"))")
+                Spacer()
+                Text("Total: \(yearlyTotal, specifier: "%.1f") \(useMiles ? "mi" : "km")")
+            }
+            .font(.caption2)
+            .foregroundStyle(.secondary)
 
-            let distance = useMiles
-            ? entry.totalKm * 0.621371
-            : entry.totalKm
+            Chart(distances) { entry in
+                let symbols = Calendar.current.shortMonthSymbols
+                let label = symbols.indices.contains(entry.month - 1)
+                    ? symbols[entry.month - 1]
+                    : "\(entry.month)"
 
-            BarMark(
-                x: .value("Month", label),
-                y: .value("Distance", distance)
-            )
+                let distance = useMiles
+                    ? entry.totalKm * 0.621371
+                    : entry.totalKm
+
+                BarMark(
+                    x: .value("Month", label),
+                    y: .value("Distance", distance)
+                )
+            }
         }
         .frame(height: 200)
-        .chartYAxisLabel {
-            Text("Distance (\(useMiles ? "mi" : "km"))")
-        }
         .accessibilityLabel("Monthly distance chart for \(year)")
     }
 }

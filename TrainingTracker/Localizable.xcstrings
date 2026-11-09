@@ -1412,6 +1412,16 @@
         }
       }
     },
+    "Total: %.1f %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Total: %1$.1f %2$@"
+          }
+        }
+      }
+    },
     "Track weekly progress for Running and Gym" : {
       "localizations" : {
         "es" : {
