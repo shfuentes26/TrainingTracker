@@ -86,6 +86,48 @@ final class RunningTrainingViewModel: ObservableObject {
         return items.filter { matchingIDs.contains($0.id) }
     }
 
+    // Récords calculados a partir de los entrenamientos guardados.
+    struct RunningRecord {
+        let date: Date
+        let distanceKm: Double
+        let durationSec: Int
+    }
+
+    struct RunningRecords {
+        let fastest3Km: RunningRecord?
+        let fastest5Km: RunningRecord?
+        let fastest10Km: RunningRecord?
+        let longestDistance: RunningRecord?
+        let longestDuration: RunningRecord?
+    }
+
+    func records(for year: Int? = nil) -> RunningRecords {
+        let runs = allRuns.filter { run in
+            guard let year else { return true }
+            return Calendar.current.component(.year, from: run.date) == year
+        }
+
+        func record(_ run: RunningTraining?) -> RunningRecord? {
+            guard let run else { return nil }
+            return RunningRecord(date: run.date, distanceKm: run.distanceKm, durationSec: run.durationSec)
+        }
+
+        // Solo carreras cercanas a la distancia objetivo: no hay datos de parciales.
+        func fastest(near distance: Double) -> RunningRecord? {
+            record(runs
+                .filter { abs($0.distanceKm - distance) <= 0.15 && $0.durationSec > 0 }
+                .min { $0.durationSec < $1.durationSec })
+        }
+
+        return RunningRecords(
+            fastest3Km: fastest(near: 3),
+            fastest5Km: fastest(near: 5),
+            fastest10Km: fastest(near: 10),
+            longestDistance: record(runs.max { $0.distanceKm < $1.distanceKm }),
+            longestDuration: record(runs.max { $0.durationSec < $1.durationSec })
+        )
+    }
+
     /// Distancias mensuales para un año concreto (filtra por año).
     func monthlyDistances(for year: Int) -> [MonthlyRunningDistance] {
         var monthlyTotals = Array(repeating: 0.0, count: 12)

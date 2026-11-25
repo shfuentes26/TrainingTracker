@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "—" : {
+
+    },
     "%@: %lld" : {
       "localizations" : {
         "en" : {
@@ -46,6 +49,9 @@
       }
     },
     "All" : {
+
+    },
+    "All time" : {
 
     },
     "Cancel" : {
@@ -211,6 +217,9 @@
         }
       }
     },
+    "Endurance" : {
+
+    },
     "Exercise" : {
       "localizations" : {
         "es" : {
@@ -250,6 +259,12 @@
           }
         }
       }
+    },
+    "Fastest times" : {
+
+    },
+    "Fastest times use complete runs within 0.15 km of the target distance. Splits are not available, so longer runs cannot be used to establish exact 3, 5 or 10 km records." : {
+
     },
     "Filter running trainings" : {
 
@@ -893,6 +908,9 @@
         }
       }
     },
+    "Period" : {
+
+    },
     "Progress" : {
       "localizations" : {
         "es" : {
@@ -1030,6 +1048,9 @@
           }
         }
       }
+    },
+    "Running records" : {
+
     },
     "running.addWorkout" : {
       "extractionState" : "stale",

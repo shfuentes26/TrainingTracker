@@ -15,6 +15,7 @@ struct RunningView: View {
     @StateObject private var vm = RunningTrainingViewModel()
     @AppStorage("useMiles") private var useMiles: Bool = false
     @State private var minimumDistanceKm: Double = 0
+    @State private var showingRecords = false
 
     var body: some View {
         NavigationStack {
@@ -81,6 +82,14 @@ struct RunningView: View {
             .navigationTitle("Running")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showingRecords = true
+                    } label: {
+                        Image(systemName: "trophy")
+                    }
+                    .accessibilityLabel("Running records")
+                }
+                ToolbarItem(placement: .topBarTrailing) {
                     Menu {
                         Picker("Distance filter", selection: $minimumDistanceKm) {
                             Text("All").tag(0.0)
@@ -96,8 +105,110 @@ struct RunningView: View {
                     .accessibilityLabel("Filter running trainings")
                 }
             }
+            .sheet(isPresented: $showingRecords) {
+                RunningRecordsView(vm: vm, useMiles: useMiles)
+            }
             .onAppear { vm.load(context: modelContext) }
         }
+    }
+}
+
+
+/// Récords históricos y del año actual.
+private struct RunningRecordsView: View {
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject var vm: RunningTrainingViewModel
+    let useMiles: Bool
+    @State private var currentYearOnly = false
+
+    private var currentYear: Int {
+        Calendar.current.component(.year, from: Date())
+    }
+
+    private var records: RunningTrainingViewModel.RunningRecords {
+        vm.records(for: currentYearOnly ? currentYear : nil)
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    Picker("Period", selection: $currentYearOnly) {
+                        Text("All time").tag(false)
+                        Text("\(currentYear)").tag(true)
+                    }
+                    .pickerStyle(.segmented)
+                }
+
+                Section("Fastest times") {
+                    recordRow("3 km", record: records.fastest3Km, showDistance: false)
+                    recordRow("5 km", record: records.fastest5Km, showDistance: false)
+                    recordRow("10 km", record: records.fastest10Km, showDistance: false)
+                }
+
+                Section("Endurance") {
+                    recordRow("Longest distance", record: records.longestDistance, showDistance: true)
+                    recordRow("Longest duration", record: records.longestDuration, showDistance: false)
+                }
+
+                Section {
+                    Text("Fastest times use complete runs within 0.15 km of the target distance. Splits are not available, so longer runs cannot be used to establish exact 3, 5 or 10 km records.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .navigationTitle("Running records")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func recordRow(
+        _ title: String,
+        record: RunningTrainingViewModel.RunningRecord?,
+        showDistance: Bool
+    ) -> some View {
+        HStack {
+            Text(title)
+            Spacer()
+            if let record {
+                VStack(alignment: .trailing, spacing: 3) {
+                    Text(showDistance ? distanceText(record.distanceKm) : durationText(record.durationSec))
+                        .font(.headline)
+                        .monospacedDigit()
+                    Text(record.date, format: .dateTime.day().month().year())
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    if !showDistance {
+                        Text(distanceText(record.distanceKm))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            } else {
+                Text("—")
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private func distanceText(_ km: Double) -> String {
+        let distance = useMiles ? km * 0.621371 : km
+        return String(format: "%.2f %@", distance, useMiles ? "mi" : "km")
+    }
+
+    private func durationText(_ seconds: Int) -> String {
+        let hours = seconds / 3600
+        let minutes = (seconds % 3600) / 60
+        let remaining = seconds % 60
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, remaining)
+        }
+        return String(format: "%d:%02d", minutes, remaining)
     }
 }
 
